@@ -42,7 +42,7 @@
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
-html, body { background: var(--bg); }
+html, body { background: var(--bg); overflow-x: hidden; max-width: 100%; }
 body {
   color: var(--ink); font: 15px/1.45 var(--body); -webkit-font-smoothing: antialiased;
   background:
@@ -341,7 +341,11 @@ function dur(sec) {
 const pace = secPerKm => dur(secPerKm * unitFactor());
 const paceRange = z => { const r = zoneRange(z); return `${pace(r.fast)}–${pace(r.slow)} /${unitLabel()}`; };
 function parseDur(t) {
-  const parts = String(t).trim().split(":").map(x => x.trim());
+  let s = String(t).trim().replace(/[.,;\s]+/g, ":");
+  // Phone number pads have no colon: "4300" means 43:00, "43" means 43 minutes
+  if (/^\d{3,4}$/.test(s)) s = s.slice(0, -2) + ":" + s.slice(-2);
+  else if (/^\d{1,2}$/.test(s)) s += ":00";
+  const parts = s.split(":").map(x => x.trim());
   if (!parts.length || parts.length > 3 || parts.some(x => x === "" || isNaN(Number(x)))) return null;
   return parts.reduce((a, x) => a * 60 + Number(x), 0);
 }
@@ -495,14 +499,14 @@ function renderSettings() {
         <div class="field"><label for="cur">Current time</label><input id="cur" type="text" inputmode="numeric" value="${dur(state.currentFiveK)}" aria-describedby="timeHelp"></div>
         <div class="field"><label for="goal">Goal time</label><input id="goal" type="text" inputmode="numeric" value="${dur(state.goalFiveK)}" aria-describedby="timeHelp"></div>
       </div>
-      <div class="err" id="timeErr" hidden>Enter a time between 10:00 and 60:00, like 28:45.</div>
-      <div class="note" id="timeHelp">Type minutes:seconds. Easy and tempo paces come from your current time, and 5K-pace reps practise your goal.</div>
+      <div class="err" id="timeErr" hidden>Enter a time between 10:00 and 60:00, like 2845 for 28:45.</div>
+      <div class="note" id="timeHelp">Type the minutes and seconds, like 4300 for 43:00. Easy and tempo paces come from your current time, and 5K-pace reps practise your goal.</div>
     </div>
     <div class="group">
       <div class="label">Run days</div>
       <div class="panel days">${DAY_SHORT.map((d, i) => `<button id="day${i + 1}" data-day="${i + 1}" aria-pressed="${state.runDays.includes(i + 1)}">${d}</button>`).join("")}</div>
       <div class="note">Pick 3 days with rest in between. They fill in order: hard session, easy run, long run.</div>
-      <div class="panel"><div class="field"><label for="start">Plan starts week of</label><input id="start" type="date" value="${state.startDate}" style="width:auto"></div></div>
+      <div class="panel"><div class="field"><label for="start">Plan starts week of</label><input id="start" type="date" value="${state.startDate}" style="width:auto;min-width:0;max-width:150px"></div></div>
     </div>
     <div class="group">
       <div class="label">Units</div>
@@ -725,6 +729,7 @@ document.addEventListener("change", ev => {
     const err = document.getElementById("timeErr");
     if (v == null || v < 600 || v > 3600) { err.hidden = false; return; }
     err.hidden = true;
+    t.value = dur(v);
     setState(t.id === "cur" ? { currentFiveK: v } : { goalFiveK: v });
   }
   if (t.id === "start" && t.value) setState({ startDate: t.value });

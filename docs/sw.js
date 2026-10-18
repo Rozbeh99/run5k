@@ -1,5 +1,5 @@
 /* Run 5K - offline shell. Bumping CACHE evicts the old one. */
-var CACHE = 'run5k-v1';
+var CACHE = 'run5k-v2';
 var SHELL = ['./', './index.html', './manifest.webmanifest', './icon-180.png', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', function (e) {
