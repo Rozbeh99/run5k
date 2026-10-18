@@ -1,0 +1,749 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Run 5K</title>
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Run 5K">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#05070d">
+<meta name="description" content="8-week 5K training plan with guided warm-ups, stretches and Apple Watch workout steps.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: dark HUD. One column of glass panels over a faint grid, gradient-rimmed hero with a progress ring, telemetry readouts in mono, glass tab bar. Deliberately one dark theme. */
+:root {
+  color-scheme: dark;
+  --bg: #05070d;
+  --panel: rgba(16, 22, 36, 0.78);
+  --panel-2: rgba(24, 32, 52, 0.7);
+  --line: rgba(130, 160, 255, 0.12);
+  --line-2: rgba(130, 160, 255, 0.22);
+  --ink: #e8eefc;
+  --muted: #8592ad;
+  --faint: #4c5874;
+  --cyan: #3ce8ff;
+  --violet: #8b5cff;
+  --grad: linear-gradient(120deg, #3ce8ff 0%, #6aa6ff 50%, #8b5cff 100%);
+  --on-grad: #050812;
+  --good: #3ce8ff;
+  --z-walk: #59647c; --z-recovery: #59647c; --z-easy: #4d9bff; --z-steady: #2ee6c9; --z-tempo: #ffb547; --z-interval: #ff4f7b; --z-strides: #a77bff;
+  --display: "Chakra Petch", "Eurostile", "Arial Narrow", sans-serif;
+  --body: "Manrope", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --r: 16px;
+  --tabbar: 60px;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { background: var(--bg); }
+body {
+  color: var(--ink); font: 15px/1.45 var(--body); -webkit-font-smoothing: antialiased;
+  background:
+    radial-gradient(900px 420px at 50% -120px, rgba(60, 120, 255, 0.18), transparent 70%),
+    linear-gradient(rgba(130, 160, 255, 0.035) 1px, transparent 1px) 0 0 / 100% 28px,
+    linear-gradient(90deg, rgba(130, 160, 255, 0.035) 1px, transparent 1px) 0 0 / 28px 100%,
+    var(--bg);
+  background-attachment: fixed;
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--bg); }
+button { font: inherit; color: inherit; -webkit-tap-highlight-color: transparent; }
+h1, h2, h3 { margin: 0; text-wrap: balance; font-family: var(--display); font-weight: 600; letter-spacing: 0.01em; }
+.mono, .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.wrap { max-width: 560px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+
+main { padding-bottom: calc(var(--tabbar) + env(safe-area-inset-bottom, 0px) + 28px); }
+main .wrap { padding-block: 14px 0; }
+section.view { display: grid; gap: 22px; }
+
+.head { display: grid; gap: 4px; padding-top: 6px; }
+.eyebrow { font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--cyan); }
+.head h1 { font-size: 32px; line-height: 1.05; }
+.head p { margin: 0; color: var(--muted); font-size: 14px; }
+
+.label { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); padding: 0 2px; display: flex; align-items: center; gap: 10px; }
+.label::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.group { display: grid; gap: 10px; }
+.note { font-size: 13px; color: var(--muted); padding: 0 2px; line-height: 1.4; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+.pad { padding: 16px; }
+.rim { border: 1px solid transparent; background: linear-gradient(var(--panel), var(--panel)) padding-box, linear-gradient(140deg, rgba(60, 232, 255, 0.7), rgba(139, 92, 255, 0.15) 45%, rgba(139, 92, 255, 0.6)) border-box; }
+
+/* Hero */
+.hero { display: grid; gap: 16px; padding: 18px 16px 16px; position: relative; overflow: hidden; }
+.hero::after { content: ""; position: absolute; width: 220px; height: 220px; right: -70px; top: -90px; background: radial-gradient(circle, rgba(139, 92, 255, 0.28), transparent 70%); pointer-events: none; }
+.hero-top { display: grid; grid-template-columns: 96px 1fr; gap: 16px; align-items: center; }
+.ring { position: relative; width: 96px; height: 96px; }
+.ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.ring .in { position: absolute; inset: 0; display: grid; place-items: center; align-content: center; text-align: center; }
+.ring .pct { font-family: var(--display); font-size: 24px; font-weight: 600; line-height: 1; }
+.ring .cap { font-family: var(--mono); font-size: 9px; letter-spacing: 0.12em; color: var(--muted); text-transform: uppercase; margin-top: 3px; }
+.hero .when { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cyan); }
+.hero h2 { font-size: 24px; line-height: 1.1; margin-top: 4px; }
+.hero .sub { color: var(--muted); font-size: 14px; margin: 6px 0 0; }
+
+.telemetry { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.telemetry div { padding: 10px 0 10px 12px; display: grid; gap: 2px; }
+.telemetry div:first-child { padding-left: 0; }
+.telemetry div + div { border-left: 1px solid var(--line); }
+.telemetry .k { font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.telemetry .v { font-family: var(--display); font-size: 21px; font-weight: 600; line-height: 1.1; white-space: nowrap; }
+.telemetry .v small { font-family: var(--mono); font-size: 11px; color: var(--muted); font-weight: 400; margin-left: 2px; }
+
+.btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 50px; border-radius: 12px; border: 0; background: var(--grad); color: var(--on-grad); font-family: var(--display); font-weight: 600; font-size: 16px; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; box-shadow: 0 8px 28px -10px rgba(60, 200, 255, 0.55); }
+.btn.ghost { background: transparent; color: var(--cyan); border: 1px solid var(--line-2); box-shadow: none; }
+.btn.small { width: auto; min-height: 34px; padding: 0 14px; font-size: 13px; border-radius: 9px; box-shadow: none; }
+.btn:active { transform: scale(0.985); }
+.btn:focus-visible, .tab:focus-visible, .row:focus-visible, .day:focus-visible, .days button:focus-visible, .seg button:focus-visible, .back:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+
+/* Week */
+.week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.day { display: grid; justify-items: center; gap: 6px; padding: 10px 0 9px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); }
+.day .d { font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; color: var(--muted); text-transform: uppercase; }
+.day .n { font-family: var(--display); font-size: 18px; font-weight: 600; line-height: 1; }
+.day .bar { width: 18px; height: 3px; border-radius: 3px; background: transparent; }
+.day.run { cursor: pointer; }
+.day.run .bar { background: var(--grad); box-shadow: 0 0 10px rgba(60, 232, 255, 0.6); }
+.day.isdone { background: linear-gradient(160deg, rgba(60, 232, 255, 0.18), rgba(139, 92, 255, 0.18)); border-color: rgba(60, 232, 255, 0.45); }
+.day.today { border-color: var(--cyan); box-shadow: 0 0 0 1px rgba(60, 232, 255, 0.25), 0 0 18px -4px rgba(60, 232, 255, 0.5); }
+
+/* Rows */
+.list { display: grid; }
+.row { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 54px; padding: 10px 16px; background: none; border: 0; text-align: left; position: relative; }
+button.row { cursor: pointer; }
+button.row:active { background: rgba(130, 160, 255, 0.06); }
+.row + .row::before, .rep + .row::before { content: ""; position: absolute; top: 0; right: 16px; left: 16px; border-top: 1px solid var(--line); }
+.rep + .row::before { display: none; }
+.row .main { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.row .t { font-size: 15px; font-weight: 600; }
+.row .s { font-size: 13px; color: var(--muted); }
+.row .val { font-family: var(--mono); color: var(--ink); font-size: 13px; text-align: right; white-space: nowrap; }
+.chev { width: 7px; height: 12px; flex: none; color: var(--faint); }
+.chip { width: 34px; height: 34px; flex: none; border-radius: 10px; display: grid; place-items: center; font-family: var(--display); font-weight: 600; font-size: 14px; color: var(--cyan); background: rgba(60, 232, 255, 0.08); border: 1px solid rgba(60, 232, 255, 0.22); }
+.chip.done { background: var(--grad); color: var(--on-grad); border-color: transparent; }
+.chip svg { width: 18px; height: 18px; }
+.zbar { width: 4px; align-self: stretch; min-height: 22px; border-radius: 4px; flex: none; }
+
+.meter { height: 4px; border-radius: 4px; background: rgba(130, 160, 255, 0.12); overflow: hidden; }
+.meter i { display: block; height: 100%; background: var(--grad); border-radius: 4px; box-shadow: 0 0 12px rgba(60, 232, 255, 0.6); }
+
+/* Session */
+.steps .row { align-items: stretch; }
+.steps .tip { font-size: 13px; color: var(--faint); font-style: italic; }
+.rep { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em; color: var(--violet); padding: 14px 16px 2px; text-transform: uppercase; }
+.howto { margin: 0; padding: 0; list-style: none; counter-reset: s; display: grid; gap: 10px; font-size: 14px; }
+.howto li { counter-increment: s; display: grid; grid-template-columns: 24px 1fr; gap: 10px; align-items: start; }
+.howto li::before { content: counter(s); width: 22px; height: 22px; border-radius: 6px; display: grid; place-items: center; font-family: var(--mono); font-size: 11px; color: var(--cyan); border: 1px solid rgba(60, 232, 255, 0.35); }
+.howto b { font-weight: 700; }
+.recipe .row { min-height: 46px; }
+.recipe .row.sub .main { padding-left: 14px; }
+
+/* Settings */
+.field { display: flex; align-items: center; gap: 12px; min-height: 54px; padding: 0 16px; position: relative; }
+.field + .field::before { content: ""; position: absolute; top: 0; right: 16px; left: 16px; border-top: 1px solid var(--line); }
+.field label { flex: 1; font-weight: 600; }
+.field input { font: 500 15px var(--mono); color: var(--cyan); background: transparent; border: 0; text-align: right; width: 130px; min-height: 44px; color-scheme: dark; }
+.field input:focus { outline: none; color: var(--ink); }
+.field input:focus-visible { outline: 1px solid var(--cyan); border-radius: 6px; }
+.days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; padding: 12px; }
+.days button { min-height: 40px; border-radius: 10px; border: 1px solid var(--line); background: transparent; font-family: var(--mono); font-size: 12px; cursor: pointer; color: var(--muted); }
+.days button[aria-pressed="true"] { background: var(--grad); color: var(--on-grad); border-color: transparent; font-weight: 600; }
+.seg { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--line); border-radius: 10px; padding: 3px; margin: 12px; }
+.seg button { min-height: 34px; border: 0; background: transparent; border-radius: 7px; font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: rgba(60, 232, 255, 0.12); color: var(--cyan); }
+.err { color: var(--z-interval); font-size: 13px; padding: 0 2px; }
+.danger { color: var(--z-interval); }
+
+/* Tab bar */
+nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: rgba(8, 11, 20, 0.82); -webkit-backdrop-filter: blur(20px) saturate(160%); backdrop-filter: blur(20px) saturate(160%); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom, 0px); padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px); }
+nav.tabs .in { max-width: 560px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); height: var(--tabbar); }
+.tab { border: 0; background: none; display: grid; place-items: center; align-content: center; gap: 4px; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); cursor: pointer; position: relative; }
+.tab svg { width: 22px; height: 22px; }
+.tab[aria-current="page"] { color: var(--cyan); }
+.tab[aria-current="page"]::before { content: ""; position: absolute; top: 0; width: 26px; height: 2px; border-radius: 2px; background: var(--grad); box-shadow: 0 0 10px rgba(60, 232, 255, 0.8); }
+
+/* Sheet */
+.sheet { position: fixed; inset: 0; z-index: 40; background: var(--bg); overflow-y: auto; -webkit-overflow-scrolling: touch; padding-top: env(safe-area-inset-top, 0px); padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 28px); }
+.sheet .bar { position: sticky; top: 0; z-index: 2; background: rgba(5, 7, 13, 0.85); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); border-bottom: 1px solid var(--line); }
+.sheet .bar .wrap { display: flex; align-items: center; justify-content: space-between; min-height: 50px; }
+.back { display: flex; align-items: center; gap: 6px; border: 0; background: none; color: var(--cyan); font-family: var(--mono); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; min-height: 44px; padding: 0; cursor: pointer; }
+.back svg { width: 9px; height: 15px; }
+.sheet .bar .meta { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0.08em; }
+.sheet .body { display: grid; gap: 22px; padding-block: 16px; }
+
+/* Player */
+.player { position: fixed; inset: 0; z-index: 50; background: radial-gradient(600px 400px at 50% 30%, rgba(60, 120, 255, 0.16), transparent 70%), var(--bg); color: var(--ink); display: grid; grid-template-rows: auto 1fr auto; padding: calc(env(safe-area-inset-top, 0px) + 8px) max(20px, env(safe-area-inset-right, 0px)) calc(env(safe-area-inset-bottom, 0px) + 24px) max(20px, env(safe-area-inset-left, 0px)); }
+.player .ptop { display: flex; justify-content: space-between; align-items: center; min-height: 44px; }
+.player .ptop button { border: 0; background: none; color: var(--cyan); font-family: var(--mono); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; min-height: 44px; cursor: pointer; }
+.player .ptop span { font-family: var(--mono); color: var(--muted); font-size: 12px; letter-spacing: 0.08em; }
+.player .center { display: grid; align-content: center; justify-items: center; text-align: center; gap: 14px; max-width: 520px; margin: 0 auto; width: 100%; }
+.player .side { font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--violet); min-height: 16px; }
+.player .ex { font-family: var(--display); font-size: 30px; font-weight: 600; line-height: 1.1; }
+.player .presc { font-family: var(--mono); color: var(--cyan); font-size: 13px; letter-spacing: 0.06em; }
+.bigring { position: relative; width: min(64vw, 260px); aspect-ratio: 1; max-width: 100%; }
+.bigring svg { width: 100%; height: 100%; transform: rotate(-90deg); filter: drop-shadow(0 0 14px rgba(60, 232, 255, 0.35)); }
+.bigring .clock { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--display); font-size: clamp(50px, 15vw, 70px); font-weight: 600; font-variant-numeric: tabular-nums; }
+.player .cue { color: var(--muted); font-size: 15px; max-width: 36ch; }
+.player .nextup { font-family: var(--mono); color: var(--faint); font-size: 12px; letter-spacing: 0.06em; }
+.player .ctrls { display: flex; justify-content: center; align-items: center; gap: 32px; }
+.player .ctrls button { border: 1px solid var(--line-2); background: var(--panel); color: var(--ink); width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; cursor: pointer; }
+.player .ctrls button svg { width: 20px; height: 20px; }
+.player .ctrls button.main { width: 78px; height: 78px; background: var(--grad); color: var(--on-grad); border: 0; box-shadow: 0 10px 34px -10px rgba(60, 200, 255, 0.7); }
+.player .ctrls button.main svg { width: 28px; height: 28px; }
+.player .ctrls button:disabled { opacity: 0.3; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .sheet, .player { animation: rise 0.26s cubic-bezier(.2, .8, .2, 1); }
+  @keyframes rise { from { transform: translateY(20px); opacity: 0; } to { transform: none; opacity: 1; } }
+  .day.run .bar, .meter i { transition: width 0.6s ease; }
+}
+</style>
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}</style>
+</head>
+<body>
+
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="g-ring" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3ce8ff"/><stop offset="0.5" stop-color="#6aa6ff"/><stop offset="1" stop-color="#8b5cff"/></linearGradient>
+  </defs>
+</svg>
+
+<main>
+  <div class="wrap">
+    <section class="view" id="view-today"></section>
+    <section class="view" id="view-plan" hidden></section>
+    <section class="view" id="view-routines" hidden></section>
+    <section class="view" id="view-settings" hidden></section>
+  </div>
+</main>
+
+<nav class="tabs" aria-label="Sections">
+  <div class="in">
+    <button class="tab" data-tab="today" aria-current="page">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>Today</button>
+    <button class="tab" data-tab="plan">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Plan</button>
+    <button class="tab" data-tab="routines">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4l2.5-6 5 12 2.5-6h4"/></svg>Routines</button>
+    <button class="tab" data-tab="settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg>Setup</button>
+  </div>
+</nav>
+
+<div id="sheet" class="sheet" hidden></div>
+<div id="player" class="player" hidden></div>
+
+<script>
+const PLAN = {"name":"8-week 5K improver","description":"Three runs a week for runners who can already run 20-30 minutes. One quality session (intervals or tempo), one easy run with strides, and one long run each week, with a recovery week in week 4 and a taper in week 8. Add the strength routine on 1-2 non-running days.","strengthRoutine":"runner-strength","weeks":[{"number":1,"focus":"Base: get comfortable with structure","sessions":[{"id":"w1-int","type":"intervals","title":"6 x 2 min at 5K pace","summary":"Short reps at goal pace teach your body the rhythm of race day.","warmupRoutine":"dynamic-warmup","cooldownRoutine":"post-run-stretch","blocks":[{"repeats":1,"steps":[{"kind":"warmup","zone":"easy","seconds":600,"note":"Start slower than you think. Relax shoulders."}]},{"repeats":3,"steps":[{"kind":"work","zone":"strides","seconds":20,"note":"Smooth acceleration, quick feet, tall posture."},{"kind":"recover","zone":"walk","seconds":60,"note":"Walk back fully recovered."}]},{"repeats":6,"steps":[{"kind":"work","zone":"interval","seconds":120,"note":"Goal 5K pace. Run the reps evenly; the last should match the first."},{"kind":"recover","zone":"recovery","seconds":120,"note":"Jog or walk until breathing settles."}]},{"repeats":1,"steps":[{"kind":"cooldown","zone":"easy","seconds":480,"note":"Ease down, finish with 2 min walking if you like."}]}],"tips":"Hold back on the first rep. Walk the recoveries if you need to."},{"id":"w1-easy","type":"easy","title":"Easy 25 min + 4 strides","summary":"Builds your aerobic engine, which powers most of a 5K. Keep it genuinely easy. Finish with short relaxed strides to practise good form.","warmupRoutine":"dynamic-warmup","cooldownRoutine":"post-run-stretch","blocks":[{"repeats":1,"steps":[{"kind":"work","zone":"easy","seconds":1500,"note":"Conversational pace. Slow down on hills."}]},{"repeats":4,"steps":[{"kind":"work","zone":"strides","seconds":20,"note":"Smooth acceleration, quick feet, tall posture."},{"kind":"recover","zone":"walk","seconds":60,"note":"Walk back fully recovered."}]}],"tips":"If you can't speak in full sentences, slow down. Walking breaks are fine."},{"id":"w1-long","type":"long","title":"Long run 35 min","summary":"Your longest run of the week. Builds endurance so the last kilometre of a 5K feels strong.","warmupRoutine":"dynamic-warmup","cooldownRoutine":"post-run-stretch","blocks":[{"repeats":1,"steps":[{"kind":"work","zone":"easy","seconds":2100,"note":"Easy and patient."}]}],"tips":"Run by time, not distance. Bring water if it's warm."}]},{"number":2,"focus":"Base: a little more volume","sessions":[{"id":"w2-int","type":"intervals","title":"5 x 3 min at 5K pace","summary":"Longer reps at goal pace build race-specific endurance.","warmupRoutine":"dynamic-warmup","cooldownRoutine":"post-run-stretch","blocks":[{"repeats":1,"steps":[{"kind":"warmup","zone":"easy","seconds":600,"note":"Start slower than you think. Relax shoulders."}]},{"repeats":3,"steps":[{"kind":"work","zone":"strides","seconds":20,"note":"Smooth acceleration, quick feet, tall posture."},{"kind":"recover","zone":"walk","seconds":60,"note":"Walk back fully recovered."}]},{"repeats":5,"steps":[{"kind":"work","zone":"interval","seconds":180,"note":"Goal 5K pace. Run the reps evenly; the last should match the first."},{"kind":"recover","zone":"recovery","seconds":120,"note":"Jog or walk until breathing settles."}]},{"repeats":1,"steps":[{"kind":"cooldown","zone":"easy","seconds":480,"note":"Ease down, finish with 2 min walking if you like."}]}],"tips":"Aim for the same pace on every rep."},{"id":"w2-easy","type":"easy","title":"Easy 25 min + 4 strides","summary":"Builds your aerobic engine, which powers most of a 5K. Keep it genuinely easy. Finish with short relaxed strides to practise good form.","warmupRoutine":"dynamic-warmup","cooldownRoutine":"post-run-stretch","blocks":[{"repeats":1,"steps":[{"kind":"work","zone":"easy","seconds":1500,"note":"Conversational pace. Slow down on hills."}]},{"repeats":4,"steps":[{"kind":"work","zone":"strides","seconds":20,"note":"Smooth acceleration, quick feet, tall posture."},{"kind":"recover","zone":"walk","seconds":60,"note":"Walk back fully recovered."}]}],"tips":"If you can't speak in full sentences, slow down. Walking breaks are fine."},{"id":"w2-long","type":"long","title":"Long run 40 min","summary":"Your longest run of the week. Builds endurance so the last kilometre of a 5K feels strong.","warmupRoutine":"dynamic-warmup","cooldownRoutine":"post-run-stretch","blocks":[{"repeats":1,"steps":[{"kind":"work","zone":"easy","seconds":2400,"note":"Easy and patient."}]}],"tips":"Run by time, not distance. Bring water if it's warm."}]},{"number":3,"focus":"Introduce tempo running","sessions":[{"id":"w3-tempo","type":"tempo","title":"2 x 8 min tempo","summary":"Tempo running raises the pace you can hold before fatigue builds up.","warmupRoutine":"dynamic-warmup","cooldownRoutine":"post-run-stretch","blocks":[{"repeats":1,"steps":[{"kind":"warmup","zone":"easy","seconds":600,"note":"Start slower than you think. Relax shoulders."}]},{"repeats":2,"steps":[{"kind":"work","zone":"tempo","seconds":480,"note":"Comfortably hard. Even effort, not a sprint."},{"kind":"recover","zone":"recovery","seconds":180,"note":"Easy jog."}]},{"repeats":1,"steps":[{"kind":"cooldown","zone":"easy","seconds":480,"note":"Ease down, finish with 2 min walking if you like."}]}],"tips":"It should feel controlled. You could keep going a bit longer at the end."},{"id":"w3-easy","type":"easy","title":"Easy 30 min + 4 strides","summary":"Builds your aerobic engine, which powers most of a 5K. Keep it genuinely easy. Finish with short relaxed strides to practise good form.","warmupRoutine":"dynamic-warmup","cooldownRoutine":"post-run-stretch","blocks":[{"repeats":1,"steps":[{"kind":"work","zone":"easy","seconds":1800,"note":"Conversational pace. Slow down on hills."}]},{"repeats":4,"steps":[{"kind":"work","zone":"strides","seconds":20,"note":"Smooth acceleration, quick feet, tall posture."},{"kind":"recover","zone":"walk","seconds":60,"note":"Walk back fully recovered."}]}],"tips":"If you can't speak in full sentences, slow down. Walking breaks are fine."},{"id":"w3-long","type":"long","title":"Long run 40 min","summary":"Your longest run of the week. Builds endurance so the last kilometre of a 5K feels strong.","warmupRoutine":"dynamic-warmup","cooldownRoutine":"post-run-stretch","blocks":[{"repeats":1,"steps":[{"kind":"work","zone":"easy","seconds":2400,"note":"Easy and patient."}]}],"tips":"Run by time, not distance. Bring water if it's warm."}]},{"number":4,"focus":"Recovery week: absorb the training","sessions":[{"id":"w4-int","type":"intervals","title":"8 x 1 min at 5K pace","summary":"A lighter session to stay sharp while your body adapts.","warmupRoutine":"dynamic-warmup","cooldownRoutine":"post-run-stretch","blocks":[{"repeats":1,"steps":[{"kind":"warmup","zone":"easy","seconds":600,"note":"Start slower than you think. Relax shoulders."}]},{"repeats":3,"steps":[{"kind":"work","zone":"strides","seconds":20,"note":"Smooth acceleration, quick feet, tall posture."},{"kind":"recover","zone":"walk","seconds":60,"note":"Walk back fully recovered."}]},{"repeats":8,"steps":[{"kind":"work","zone":"interval","seconds":60,"note":"Goal 5K pace. Run the reps evenly; the last should match the first."},{"kind":"recover","zone":"recovery","seconds":60,"note":"Jog or walk until breathing settles."}]},{"repeats":1,"steps":[{"kind":"cooldown","zone":"easy","seconds":480,"note":"Ease down, finish with 2 min walking if you like."}]}],"tips":"Keep it light and quick, this is a recovery week."},{"id":"w4-easy","type":"easy","title":"Easy 25 min","summary":"Builds your aerobic engine, which powers most of a 5K. Keep it genuinely easy.","warmupRoutine":"dynamic-warmup","cooldownRoutine":"post-run-stretch","blocks":[{"repeats":1,"steps":[{"kind":"work","zone":"easy","seconds":1500,"note":"Conversational pace. Slow down on hills."}]}],"tips":"If you can't speak in full sentences, slow down. Walking breaks are fine."},{"id":"w4-long","type":"long","title":"Long run 35 min","summary":"Your longest run of the week. Builds endurance so the last kilometre of a 5K feels strong.","warmupRoutine":"dynamic-warmup","cooldownRoutine":"post-run-stretch","blocks":[{"repeats":1,"steps":[{"kind":"work","zone":"easy","seconds":2100,"note":"Easy and patient."}]}],"tips":"Run by time, not distance. Bring water if it's warm."}]},{"number":5,"focus":"Build: distance-based reps","sessions":[{"id":"w5-int","type":"intervals","title":"6 x 400 m at 5K pace","summary":"400 m reps at goal pace. Run them on a track or a flat stretch of road.","warmupRoutine":"dynamic-warmup","cooldownRoutine":"post-run-stretch","blocks":[{"repeats":1,"steps":[{"kind":"warmup","zone":"easy","seconds":600,"note":"Start slower than you think. Relax shoulders."}]},{"repeats":3,"steps":[{"kind":"work","zone":"strides","seconds":20,"note":"Smooth acceleration, quick feet, tall posture."},{"kind":"recover","zone":"walk","seconds":60,"note":"Walk back fully recovered."}]},{"repeats":6,"steps":[{"kind":"work","zone":"interval","meters":400,"note":"Goal 5K pace. Run the reps evenly; the last should match the first."},{"kind":"recover","zone":"recovery","seconds":90,"note":"Jog or walk until breathing settles."}]},{"repeats":1,"steps":[{"kind":"cooldown","zone":"easy","seconds":480,"note":"Ease down, finish with 2 min walking if you like."}]}],"tips":"If you're faster than target, you're probably going too hard. Hold the pace."},{"id":"w5-easy","type":"easy","title":"Easy 30 min + 4 strides","summary":"Builds your aerobic engine, which powers most of a 5K. Keep it genuinely easy. Finish with short relaxed strides to practise good form.","warmupRoutine":"dynamic-warmup","cooldownRoutine":"post-run-stretch","blocks":[{"repeats":1,"steps":[{"kind":"work","zone":"easy","seconds":1800,"note":"Conversational pace. Slow down on hills."}]},{"repeats":4,"steps":[{"kind":"work","zone":"strides","seconds":20,"note":"Smooth acceleration, quick feet, tall posture."},{"kind":"recover","zone":"walk","seconds":60,"note":"Walk back fully recovered."}]}],"tips":"If you can't speak in full sentences, slow down. Walking breaks are fine."},{"id":"w5-long","type":"long","title":"Long run 45 min","summary":"Your longest run of the week. Builds endurance so the last kilometre of a 5K feels strong.","warmupRoutine":"dynamic-warmup","cooldownRoutine":"post-run-stretch","blocks":[{"repeats":1,"steps":[{"kind":"work","zone":"easy","seconds":2400,"note":"Easy and patient."}]},{"repeats":1,"steps":[{"kind":"work","zone":"steady","seconds":300,"note":"Pick it up to steady effort for the finish."}]}],"tips":"Run by time, not distance. Bring water if it's warm. Last 5 min at steady effort."}]},{"number":6,"focus":"Build: longer reps","sessions":[{"id":"w6-int","type":"intervals","title":"4 x 800 m at 5K pace","summary":"800 m reps are the classic 5K session: race pace with partial recovery.","warmupRoutine":"dynamic-warmup","cooldownRoutine":"post-run-stretch","blocks":[{"repeats":1,"steps":[{"kind":"warmup","zone":"easy","seconds":600,"note":"Start slower than you think. Relax shoulders."}]},{"repeats":3,"steps":[{"kind":"work","zone":"strides","seconds":20,"note":"Smooth acceleration, quick feet, tall posture."},{"kind":"recover","zone":"walk","seconds":60,"note":"Walk back fully recovered."}]},{"repeats":4,"steps":[{"kind":"work","zone":"interval","meters":800,"note":"Goal 5K pace. Run the reps evenly; the last should match the first."},{"kind":"recover","zone":"recovery","seconds":150,"note":"Jog or walk until breathing settles."}]},{"repeats":1,"steps":[{"kind":"cooldown","zone":"easy","seconds":480,"note":"Ease down, finish with 2 min walking if you like."}]}],"tips":"Focus on rhythm in the second half of each rep."},{"id":"w6-easy","type":"easy","title":"Easy 30 min + 4 strides","summary":"Builds your aerobic engine, which powers most of a 5K. Keep it genuinely easy. Finish with short relaxed strides to practise good form.","warmupRoutine":"dynamic-warmup","cooldownRoutine":"post-run-stretch","blocks":[{"repeats":1,"steps":[{"kind":"work","zone":"easy","seconds":1800,"note":"Conversational pace. Slow down on hills."}]},{"repeats":4,"steps":[{"kind":"work","zone":"strides","seconds":20,"note":"Smooth acceleration, quick feet, tall posture."},{"kind":"recover","zone":"walk","seconds":60,"note":"Walk back fully recovered."}]}],"tips":"If you can't speak in full sentences, slow down. Walking breaks are fine."},{"id":"w6-long","type":"long","title":"Long run 45 min","summary":"Your longest run of the week. Builds endurance so the last kilometre of a 5K feels strong.","warmupRoutine":"dynamic-warmup","cooldownRoutine":"post-run-stretch","blocks":[{"repeats":1,"steps":[{"kind":"work","zone":"easy","seconds":2220,"note":"Easy and patient."}]},{"repeats":1,"steps":[{"kind":"work","zone":"steady","seconds":480,"note":"Pick it up to steady effort for the finish."}]}],"tips":"Run by time, not distance. Bring water if it's warm. Last 8 min at steady effort."}]},{"number":7,"focus":"Peak: race-specific strength","sessions":[{"id":"w7-tempo","type":"tempo","title":"3 x 6 min tempo","summary":"Tempo blocks with short recoveries to toughen you for the middle kilometres of the race.","warmupRoutine":"dynamic-warmup","cooldownRoutine":"post-run-stretch","blocks":[{"repeats":1,"steps":[{"kind":"warmup","zone":"easy","seconds":600,"note":"Start slower than you think. Relax shoulders."}]},{"repeats":3,"steps":[{"kind":"work","zone":"tempo","seconds":360,"note":"Comfortably hard. Even effort, not a sprint."},{"kind":"recover","zone":"recovery","seconds":120,"note":"Easy jog."}]},{"repeats":1,"steps":[{"kind":"cooldown","zone":"easy","seconds":480,"note":"Ease down, finish with 2 min walking if you like."}]}],"tips":"Same effort on every block. Stay relaxed in your face and shoulders."},{"id":"w7-easy","type":"easy","title":"Easy 30 min + 4 strides","summary":"Builds your aerobic engine, which powers most of a 5K. Keep it genuinely easy. Finish with short relaxed strides to practise good form.","warmupRoutine":"dynamic-warmup","cooldownRoutine":"post-run-stretch","blocks":[{"repeats":1,"steps":[{"kind":"work","zone":"easy","seconds":1800,"note":"Conversational pace. Slow down on hills."}]},{"repeats":4,"steps":[{"kind":"work","zone":"strides","seconds":20,"note":"Smooth acceleration, quick feet, tall posture."},{"kind":"recover","zone":"walk","seconds":60,"note":"Walk back fully recovered."}]}],"tips":"If you can't speak in full sentences, slow down. Walking breaks are fine."},{"id":"w7-long","type":"long","title":"Long run 40 min","summary":"Your longest run of the week. Builds endurance so the last kilometre of a 5K feels strong.","warmupRoutine":"dynamic-warmup","cooldownRoutine":"post-run-stretch","blocks":[{"repeats":1,"steps":[{"kind":"work","zone":"easy","seconds":2100,"note":"Easy and patient."}]},{"repeats":1,"steps":[{"kind":"work","zone":"steady","seconds":300,"note":"Pick it up to steady effort for the finish."}]}],"tips":"Run by time, not distance. Bring water if it's warm. Last 5 min at steady effort."}]},{"number":8,"focus":"Taper and race","sessions":[{"id":"w8-int","type":"intervals","title":"4 x 400 m sharpener","summary":"A short session to feel fast and fresh before race day.","warmupRoutine":"dynamic-warmup","cooldownRoutine":"post-run-stretch","blocks":[{"repeats":1,"steps":[{"kind":"warmup","zone":"easy","seconds":600,"note":"Start slower than you think. Relax shoulders."}]},{"repeats":3,"steps":[{"kind":"work","zone":"strides","seconds":20,"note":"Smooth acceleration, quick feet, tall posture."},{"kind":"recover","zone":"walk","seconds":60,"note":"Walk back fully recovered."}]},{"repeats":4,"steps":[{"kind":"work","zone":"interval","meters":400,"note":"Goal 5K pace. Run the reps evenly; the last should match the first."},{"kind":"recover","zone":"recovery","seconds":120,"note":"Jog or walk until breathing settles."}]},{"repeats":1,"steps":[{"kind":"cooldown","zone":"easy","seconds":480,"note":"Ease down, finish with 2 min walking if you like."}]}],"tips":"Leave the session feeling like you could do much more."},{"id":"w8-easy","type":"easy","title":"Easy 20 min + 4 strides","summary":"Builds your aerobic engine, which powers most of a 5K. Keep it genuinely easy. Finish with short relaxed strides to practise good form.","warmupRoutine":"dynamic-warmup","cooldownRoutine":"post-run-stretch","blocks":[{"repeats":1,"steps":[{"kind":"work","zone":"easy","seconds":1200,"note":"Conversational pace. Slow down on hills."}]},{"repeats":4,"steps":[{"kind":"work","zone":"strides","seconds":20,"note":"Smooth acceleration, quick feet, tall posture."},{"kind":"recover","zone":"walk","seconds":60,"note":"Walk back fully recovered."}]}],"tips":"If you can't speak in full sentences, slow down. Walking breaks are fine."},{"id":"w8-race","type":"race","title":"5K race or time trial","summary":"Race day! Start controlled, settle into goal pace, and push the last kilometre.","warmupRoutine":"dynamic-warmup","cooldownRoutine":"post-run-stretch","blocks":[{"repeats":1,"steps":[{"kind":"warmup","zone":"easy","seconds":600,"note":"Easy jog, then the dynamic warm-up."}]},{"repeats":3,"steps":[{"kind":"work","zone":"strides","seconds":20,"note":"Smooth acceleration, quick feet, tall posture."},{"kind":"recover","zone":"walk","seconds":60,"note":"Walk back fully recovered."}]},{"repeats":1,"steps":[{"kind":"work","zone":"interval","meters":5000,"note":"First km at goal pace, don't go out too fast. Push from 4 km."}]},{"repeats":1,"steps":[{"kind":"cooldown","zone":"easy","seconds":600,"note":"Ease down, finish with 2 min walking if you like."}]}],"tips":"Eat something light 2-3 hours before. Do the full warm-up. The first kilometre should feel easy."}]}]};
+const ROUTINES = ({"routines":[{"id":"dynamic-warmup","kind":"warmup","title":"Dynamic warm-up","summary":"6-8 minutes of movement drills before every run. Wakes up hips, ankles and calves and lowers injury risk.","exercises":[{"name":"Brisk walk or easy jog","cue":"Get your heart rate up gently before the drills.","seconds":120},{"name":"Leg swings (front to back)","cue":"Hold a wall, swing one leg like a pendulum. Keep your torso tall.","reps":10,"perSide":true},{"name":"Leg swings (side to side)","cue":"Face the wall and swing across your body. Loosens hips and groin.","reps":10,"perSide":true},{"name":"Walking lunge with twist","cue":"Long step, back knee towards the ground, rotate your chest over the front leg.","reps":6,"perSide":true},{"name":"Hip circles","cue":"Hands on hips, big slow circles in both directions.","reps":10},{"name":"High knees","cue":"Quick light steps driving knees to hip height, arms pumping. About 20 m.","seconds":20},{"name":"Butt kicks","cue":"Heels flick towards your glutes with quick cadence. About 20 m.","seconds":20},{"name":"A-skips","cue":"Skip with a high knee and a snappy foot strike under your hips. About 20 m.","seconds":20},{"name":"Pogo hops","cue":"Small bouncy hops on the balls of your feet with stiff ankles.","seconds":20}]},{"id":"post-run-stretch","kind":"cooldown","title":"Post-run stretch","summary":"About 8 minutes of gentle static stretches after you run. Hold each one without bouncing.","exercises":[{"name":"Calf stretch (straight knee)","cue":"Hands on a wall, back leg straight, heel down. Feel it in the upper calf.","seconds":30,"perSide":true},{"name":"Calf stretch (bent knee)","cue":"Same position but bend the back knee to reach the lower calf and Achilles.","seconds":30,"perSide":true},{"name":"Standing quad stretch","cue":"Pull your heel to your glute, knees together, hips pushed slightly forward.","seconds":30,"perSide":true},{"name":"Hamstring stretch","cue":"Heel on a low step, leg straight, hinge forward from the hips with a flat back.","seconds":30,"perSide":true},{"name":"Kneeling hip flexor stretch","cue":"Half-kneel, squeeze the glute of the back leg and shift your hips forward.","seconds":30,"perSide":true},{"name":"Figure-4 glute stretch","cue":"Lying down, ankle over opposite knee, pull the bottom leg towards your chest.","seconds":30,"perSide":true},{"name":"Child's pose","cue":"Knees wide, sit back on your heels, arms long. Breathe slowly.","seconds":45}]},{"id":"runner-strength","kind":"strength","title":"Runner strength","summary":"About 20 minutes, 1-2 times a week on non-running days. Stronger glutes, calves and core make you more efficient and more durable.","exercises":[{"name":"Glute bridge","cue":"Drive through your heels, squeeze glutes at the top, don't arch your lower back.","reps":12,"sets":3},{"name":"Single-leg calf raise","cue":"On a step edge, rise up fully and lower slowly over 3 seconds.","reps":12,"sets":3,"perSide":true},{"name":"Split squat","cue":"Long stance, lower the back knee straight down, front knee tracks over toes.","reps":8,"sets":3,"perSide":true},{"name":"Single-leg Romanian deadlift","cue":"Hinge at the hip on one leg, back flat, reach towards the floor and return tall.","reps":8,"sets":2,"perSide":true},{"name":"Clamshell","cue":"Lying on your side, knees bent, open the top knee without rolling your hips back.","reps":15,"sets":2,"perSide":true},{"name":"Plank","cue":"Straight line from head to heels, brace your stomach, breathe.","seconds":30,"sets":3},{"name":"Side plank","cue":"Elbow under shoulder, hips high. Drop to knees to make it easier.","seconds":20,"sets":2,"perSide":true}]}]}).routines;
+const LOCALE = "en-GB";
+
+// ---------- state ----------
+const DEFAULT_STATE = { currentFiveK: 1800, goalFiveK: 1650, runDays: [2, 4, 6], startDate: isoDate(new Date()), unit: "km", done: {} };
+let state = Object.assign({}, DEFAULT_STATE);
+let stateDoc = null, saveTimer = null, saving = false, pendingSave = false, syncText = "Saved on this iPhone";
+
+try {
+  const raw = localStorage.getItem("run5k-state");
+  if (raw) state = Object.assign({}, DEFAULT_STATE, JSON.parse(raw));
+} catch (e) {}
+
+function setState(patch) {
+  state = Object.assign({}, state, patch);
+  try { localStorage.setItem("run5k-state", JSON.stringify(state)); } catch (e) {}
+  render();
+  queueSave();
+}
+function queueSave() {
+  if (!stateDoc) return;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(flushSave, 700);
+}
+async function flushSave() {
+  if (saving) { pendingSave = true; return; }
+  saving = true;
+  try { await stateDoc.set(JSON.parse(JSON.stringify(state))); setSync("Saved to your Claude account"); }
+  catch (e) { setSync("Saved on this iPhone only"); }
+  saving = false;
+  if (pendingSave) { pendingSave = false; flushSave(); }
+}
+function setSync(t) { syncText = t; const el = document.getElementById("sync"); if (el) el.textContent = t; }
+
+async function connectStore() {
+  if (!window.claude || !window.claude.use) return;
+  try {
+    const db = await window.claude.use("db");
+    if (!db) return;
+    stateDoc = db.doc("app/state");
+    stateDoc.onSnapshot(snap => {
+      if (snap.metadata.hasPendingWrites) return;
+      if (snap.exists) {
+        state = Object.assign({}, DEFAULT_STATE, snap.data());
+        try { localStorage.setItem("run5k-state", JSON.stringify(state)); } catch (e) {}
+        syncText = "Saved to your Claude account";
+        render();
+      }
+    }, () => setSync("Saved on this iPhone only"));
+  } catch (e) {}
+}
+
+// ---------- dates & schedule ----------
+function isoDate(d) { const z = new Date(d.getTime() - d.getTimezoneOffset() * 60000); return z.toISOString().slice(0, 10); }
+function parseISO(s) { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); }
+function addDays(d, n) { const r = new Date(d); r.setDate(r.getDate() + n); return r; }
+function mondayOf(d) { const r = new Date(d.getFullYear(), d.getMonth(), d.getDate()); return addDays(r, -((r.getDay() + 6) % 7)); }
+function sameDay(a, b) { return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate(); }
+const DAY_SHORT = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const wdIndex = d => (d.getDay() + 6) % 7;
+const fmtDay = d => d.toLocaleDateString(LOCALE, { weekday: "short", day: "numeric", month: "short" });
+const fmtLong = d => d.toLocaleDateString(LOCALE, { weekday: "long", day: "numeric", month: "long" });
+
+function schedule() {
+  const days = [...new Set(state.runDays)].sort((a, b) => a - b);
+  const first = mondayOf(parseISO(state.startDate));
+  const out = [];
+  PLAN.weeks.forEach((week, wi) => {
+    week.sessions.forEach((s, i) => {
+      if (i >= days.length) return;
+      out.push({ id: "w" + week.number + "-" + s.id, week: week.number, focus: week.focus, date: addDays(first, wi * 7 + days[i] - 1), session: s });
+    });
+  });
+  return out;
+}
+
+// ---------- paces ----------
+function zoneRange(zone) {
+  const p = state.currentFiveK / 5, g = state.goalFiveK / 5;
+  const r = { walk: [p * 1.8, p * 2.6], recovery: [p * 1.3, p * 1.5], easy: [p * 1.18, p * 1.32], steady: [p * 1.08, p * 1.14],
+              tempo: [p * 1.03, p * 1.07], interval: [g * 0.98, g * 1.02], strides: [g * 0.85, g * 0.93] }[zone];
+  return { fast: r[0], slow: r[1], mid: (r[0] + r[1]) / 2 };
+}
+const ZONE_TITLE = { walk: "Walk", recovery: "Recovery jog", easy: "Easy", steady: "Steady", tempo: "Tempo", interval: "5K pace", strides: "Strides" };
+const ZONE_EFFORT = { walk: "Easy walk", recovery: "Very easy, catch your breath", easy: "You can talk in full sentences", steady: "Comfortably hard, short sentences",
+                      tempo: "Hard but controlled", interval: "Your goal race effort", strides: "Fast and relaxed, not a sprint" };
+const showPaceFor = z => z !== "walk" && z !== "recovery";
+const unitFactor = () => state.unit === "mi" ? 1.609344 : 1;
+const unitLabel = () => state.unit === "mi" ? "mi" : "km";
+
+function dur(sec) {
+  if (!isFinite(sec) || sec < 0) return "--:--";
+  sec = Math.round(sec);
+  const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+  return h ? `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}` : `${m}:${String(s).padStart(2, "0")}`;
+}
+const pace = secPerKm => dur(secPerKm * unitFactor());
+const paceRange = z => { const r = zoneRange(z); return `${pace(r.fast)}–${pace(r.slow)} /${unitLabel()}`; };
+function parseDur(t) {
+  const parts = String(t).trim().split(":").map(x => x.trim());
+  if (!parts.length || parts.length > 3 || parts.some(x => x === "" || isNaN(Number(x)))) return null;
+  return parts.reduce((a, x) => a * 60 + Number(x), 0);
+}
+function stepLength(st) {
+  if (st.meters != null) return st.meters >= 1000 ? `${(st.meters / 1000).toFixed(1)} km` : `${st.meters} m`;
+  if (st.seconds != null) return st.seconds >= 60 && st.seconds % 60 === 0 ? `${st.seconds / 60} min` : (st.seconds < 60 ? `${st.seconds} s` : dur(st.seconds));
+  return "";
+}
+function flat(s) { return s.blocks.flatMap(b => Array(Math.max(b.repeats, 1)).fill(b.steps).flat()); }
+function estSeconds(s) { return flat(s).reduce((t, st) => t + (st.seconds != null ? st.seconds : st.meters / 1000 * zoneRange(st.zone).mid), 0); }
+function estMeters(s) { return flat(s).reduce((t, st) => t + (st.meters != null ? st.meters : (st.zone === "walk" ? 0 : st.seconds / zoneRange(st.zone).mid * 1000)), 0); }
+const distNum = m => (m / 1000 / unitFactor()).toFixed(1);
+
+const TYPE_TITLE = { easy: "Easy run", intervals: "Intervals", tempo: "Tempo", long: "Long run", race: "Race" };
+const TYPE_MARK = { easy: "E", intervals: "I", tempo: "T", long: "L", race: "5K" };
+
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const routineById = id => ROUTINES.find(r => r.id === id);
+const exSeconds = e => (e.seconds || (e.reps || 10) * 3) * (e.perSide ? 2 : 1) * Math.max(e.sets || 1, 1);
+const routineMin = r => Math.round(r.exercises.reduce((t, e) => t + exSeconds(e), 0) / 60);
+function prescription(e) {
+  const p = [];
+  if (e.sets > 1) p.push(`${e.sets} ×`);
+  if (e.reps) p.push(`${e.reps} reps`);
+  if (e.seconds) p.push(e.seconds >= 60 ? `${e.seconds / 60} min` : `${e.seconds} s`);
+  if (e.perSide) p.push("each side");
+  return p.join(" ");
+}
+
+const CHEV = `<svg class="chev" viewBox="0 0 8 13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 1.5l5 5-5 5"/></svg>`;
+const ICON = {
+  check: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>`,
+  flame: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c-3.9 0-6.5-2.6-6.5-6 0-3.3 2.6-5.3 3.8-8.5 2.2 1.6 3.2 3.5 3.2 5.5 1-.8 1.6-2 1.8-3.3 2 1.8 4.2 4 4.2 6.3 0 3.4-2.6 6-6.5 6z"/></svg>`,
+  stretch: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4.5" r="1.8"/><path d="M4 9l8 1.5L20 9M12 10.5V15l-4 6M12 15l4 6"/></svg>`,
+  strength: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11"/></svg>`,
+  watch: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="3.5"/><path d="M9 6l.8-3h4.4l.8 3M9 18l.8 3h4.4l.8-3M12 9.5V12l1.5 1.5"/></svg>`
+};
+const routineIcon = r => r.kind === "warmup" ? ICON.flame : r.kind === "cooldown" ? ICON.stretch : ICON.strength;
+const backBtn = label => `<button class="back" data-close><svg viewBox="0 0 12 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2L2 10l8 8"/></svg>${esc(label)}</button>`;
+
+// ---------- views ----------
+let tab = "today", sheetBackLabel = "Back";
+
+function render() {
+  renderToday(); renderPlan(); renderRoutines(); renderSettings();
+  if (openSessionId) openSession(openSessionId, true);
+}
+
+function ringSvg(frac, r, stroke) {
+  const C = 2 * Math.PI * r;
+  return `<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="${r}" fill="none" stroke="rgba(130,160,255,.14)" stroke-width="${stroke}"/><circle cx="50" cy="50" r="${r}" fill="none" stroke="url(#g-ring)" stroke-width="${stroke}" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - Math.max(0.001, Math.min(frac, 1)))}"/></svg>`;
+}
+
+function currentWeek(all, today) {
+  const first = mondayOf(parseISO(state.startDate));
+  const w = Math.floor((mondayOf(today) - first) / (7 * 864e5)) + 1;
+  return Math.max(1, Math.min(w, PLAN.weeks.length));
+}
+
+function renderToday() {
+  const all = schedule();
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const next = all.find(x => x.date >= today && !state.done[x.id]) || all.find(x => !state.done[x.id]);
+  const doneCount = all.filter(x => state.done[x.id]).length;
+  const frac = doneCount / Math.max(all.length, 1);
+  const weekDays = [...Array(7)].map((_, i) => addDays(mondayOf(today), i));
+  const wk = currentWeek(all, today);
+
+  let hero;
+  if (next) {
+    const isToday = sameDay(next.date, today), isTomorrow = sameDay(next.date, addDays(today, 1));
+    const when = isToday ? "Today" : isTomorrow ? "Tomorrow" : next.date.toLocaleDateString(LOCALE, { weekday: "long" });
+    hero = `<div class="panel rim hero">
+      <div class="hero-top">
+        <div class="ring">${ringSvg(frac, 42, 7)}<div class="in"><span class="pct">${Math.round(frac * 100)}%</span><span class="cap">Plan</span></div></div>
+        <div style="min-width:0">
+          <div class="when">Next · ${when}</div>
+          <h2>${esc(next.session.title)}</h2>
+          <p class="sub">${esc(TYPE_TITLE[next.session.type])} · Week ${next.week}</p>
+        </div>
+      </div>
+      <div class="telemetry">
+        <div><span class="k">Time</span><span class="v">${Math.round(estSeconds(next.session) / 60)}<small>min</small></span></div>
+        <div><span class="k">Distance</span><span class="v">${distNum(estMeters(next.session))}<small>${unitLabel()}</small></span></div>
+        <div><span class="k">Done</span><span class="v">${doneCount}<small>/${all.length}</small></span></div>
+      </div>
+      <button class="btn" data-open="${next.id}" data-from="Today">Open session</button>
+    </div>`;
+  } else {
+    hero = `<div class="panel rim hero"><div class="hero-top"><div class="ring">${ringSvg(1, 42, 7)}<div class="in"><span class="pct">100%</span><span class="cap">Plan</span></div></div>
+      <div><div class="when">Complete</div><h2>All ${all.length} runs done</h2><p class="sub">Set a new goal in Setup and go again.</p></div></div></div>`;
+  }
+
+  const strip = weekDays.map(d => {
+    const item = all.find(x => sameDay(x.date, d));
+    const cls = ["day", item ? "run" : "", item && state.done[item.id] ? "isdone" : "", sameDay(d, today) ? "today" : ""].join(" ");
+    const inner = `<span class="d">${DAY_SHORT[wdIndex(d)]}</span><span class="n">${d.getDate()}</span><span class="bar"></span>`;
+    const label = `${DAY_SHORT[wdIndex(d)]} ${d.getDate()}: ${item ? item.session.title + (state.done[item.id] ? ", done" : "") : "rest day"}`;
+    return item ? `<button class="${cls}" data-open="${item.id}" data-from="Today" aria-label="${esc(label)}">${inner}</button>` : `<div class="${cls}" aria-label="${esc(label)}">${inner}</div>`;
+  }).join("");
+
+  const strength = routineById(PLAN.strengthRoutine);
+  document.getElementById("view-today").innerHTML = `
+    <div class="head"><span class="eyebrow">Week ${wk} of ${PLAN.weeks.length} · ${esc(PLAN.weeks[wk - 1].focus.split(":")[0])}</span><h1>${esc(fmtLong(new Date()))}</h1></div>
+    ${hero}
+    <div class="group"><div class="label">This week</div><div class="week">${strip}</div></div>
+    <div class="group">
+      <div class="label">Target paces</div>
+      <div class="panel list">
+        ${["easy", "tempo", "interval"].map(z => `<div class="row"><span class="zbar" style="background:var(--z-${z});box-shadow:0 0 10px var(--z-${z})"></span><span class="main"><span class="t">${ZONE_TITLE[z]}</span></span><span class="val">${paceRange(z)}</span></div>`).join("")}
+      </div>
+      <div class="note">From a current 5K of ${dur(state.currentFiveK)} and a goal of ${dur(state.goalFiveK)}.</div>
+    </div>
+    ${strength ? `<div class="group"><div class="label">Rest days</div>
+      <div class="panel list"><button class="row" data-routine="${strength.id}" data-from="Today"><span class="chip">${ICON.strength}</span><span class="main"><span class="t">${esc(strength.title)}</span><span class="s">${routineMin(strength)} min · once or twice a week</span></span>${CHEV}</button></div></div>` : ""}`;
+}
+
+function renderPlan() {
+  const all = schedule();
+  const doneCount = all.filter(x => state.done[x.id]).length;
+  const weeks = PLAN.weeks.map(w => {
+    const items = all.filter(x => x.week === w.number);
+    const rows = items.map(x => `<button class="row" data-open="${x.id}" data-from="Plan">
+      <span class="chip ${state.done[x.id] ? "done" : ""}">${state.done[x.id] ? ICON.check : TYPE_MARK[x.session.type]}</span>
+      <span class="main"><span class="t">${esc(x.session.title)}</span><span class="s">${esc(fmtDay(x.date))}</span></span>${CHEV}</button>`).join("");
+    return `<div class="group"><div class="label">W${String(w.number).padStart(2, "0")} · ${esc(w.focus)}</div><div class="panel list">${rows || '<div class="row"><span class="s">Pick run days in Setup.</span></div>'}</div></div>`;
+  }).join("");
+  document.getElementById("view-plan").innerHTML = `
+    <div class="head"><span class="eyebrow">${doneCount} of ${all.length} runs done</span><h1>${esc(PLAN.name)}</h1><p>${esc(PLAN.description)}</p></div>
+    <div class="meter" role="progressbar" aria-valuemin="0" aria-valuemax="${all.length}" aria-valuenow="${doneCount}"><i style="width:${doneCount / Math.max(all.length, 1) * 100}%"></i></div>
+    ${weeks}`;
+}
+
+function renderRoutines() {
+  const rows = ROUTINES.map(r => `<button class="row" data-routine="${r.id}" data-from="Routines">
+    <span class="chip">${routineIcon(r)}</span>
+    <span class="main"><span class="t">${esc(r.title)}</span><span class="s">${r.exercises.length} exercises · ${routineMin(r)} min</span></span>${CHEV}</button>`).join("");
+  document.getElementById("view-routines").innerHTML = `
+    <div class="head"><span class="eyebrow">Guided timers</span><h1>Routines</h1><p>Warm up before every run, stretch afterwards, and add strength on one or two rest days.</p></div>
+    <div class="panel list">${rows}</div>`;
+}
+
+function renderSettings() {
+  const v = document.getElementById("view-settings");
+  const focusedId = document.activeElement && document.activeElement.id;
+  v.innerHTML = `
+    <div class="head"><span class="eyebrow" id="sync">${esc(syncText)}</span><h1>Setup</h1></div>
+    <div class="group">
+      <div class="label">Your 5K</div>
+      <div class="panel">
+        <div class="field"><label for="cur">Current time</label><input id="cur" type="text" inputmode="numeric" value="${dur(state.currentFiveK)}" aria-describedby="timeHelp"></div>
+        <div class="field"><label for="goal">Goal time</label><input id="goal" type="text" inputmode="numeric" value="${dur(state.goalFiveK)}" aria-describedby="timeHelp"></div>
+      </div>
+      <div class="err" id="timeErr" hidden>Enter a time between 10:00 and 60:00, like 28:45.</div>
+      <div class="note" id="timeHelp">Type minutes:seconds. Easy and tempo paces come from your current time, and 5K-pace reps practise your goal.</div>
+    </div>
+    <div class="group">
+      <div class="label">Run days</div>
+      <div class="panel days">${DAY_SHORT.map((d, i) => `<button id="day${i + 1}" data-day="${i + 1}" aria-pressed="${state.runDays.includes(i + 1)}">${d}</button>`).join("")}</div>
+      <div class="note">Pick 3 days with rest in between. They fill in order: hard session, easy run, long run.</div>
+      <div class="panel"><div class="field"><label for="start">Plan starts week of</label><input id="start" type="date" value="${state.startDate}" style="width:auto"></div></div>
+    </div>
+    <div class="group">
+      <div class="label">Units</div>
+      <div class="panel"><div class="seg"><button id="ukm" data-unit="km" aria-pressed="${state.unit === "km"}">Kilometres</button><button id="umi" data-unit="mi" aria-pressed="${state.unit === "mi"}">Miles</button></div></div>
+    </div>
+    <div class="group">
+      <div class="label">All pace zones</div>
+      <div class="panel list">${["recovery", "easy", "steady", "tempo", "interval", "strides"].map(z => `<div class="row"><span class="zbar" style="background:var(--z-${z})"></span><span class="main"><span class="t">${ZONE_TITLE[z]}</span></span><span class="val">${paceRange(z)}</span></div>`).join("")}</div>
+    </div>
+    <div class="panel list"><button class="row" id="reset"><span class="main"><span class="t danger" id="resetLabel">Reset all ticks</span></span></button></div>`;
+  if (focusedId && document.getElementById(focusedId)) document.getElementById(focusedId).focus();
+}
+
+// ---------- session sheet ----------
+let openSessionId = null;
+
+function recipeRows(s) {
+  const rows = [];
+  s.blocks.forEach(b => {
+    const st0 = b.steps[0];
+    if (b.repeats === 1 && b.steps.length === 1 && st0.kind === "warmup") { rows.push(["Warmup", `${stepLength(st0)} · time`]); return; }
+    if (b.repeats === 1 && b.steps.length === 1 && st0.kind === "cooldown") { rows.push(["Cooldown", `${stepLength(st0)} · time`]); return; }
+    rows.push([`Repeat ${b.repeats}×`, "", "head"]);
+    b.steps.forEach(st => {
+      const goal = `${stepLength(st)} · ${st.meters != null ? "distance" : "time"}`;
+      const alert = showPaceFor(st.zone) && st.zone !== "strides" ? `Pace alert ${paceRange(st.zone)}` : (st.zone === "walk" ? "Walk" : "");
+      rows.push([st.kind === "work" ? "Work" : "Recovery", goal, "sub", alert]);
+    });
+  });
+  return rows.map(([k, v, kind, alert]) => kind === "head"
+    ? `<div class="rep">${esc(k)}</div>`
+    : `<div class="row ${kind === "sub" ? "sub" : ""}"><span class="main"><span class="t">${esc(k)}</span>${alert ? `<span class="s">${esc(alert)}</span>` : ""}</span><span class="val">${esc(v)}</span></div>`).join("");
+}
+
+function openSession(id, quiet, from) {
+  const item = schedule().find(x => x.id === id);
+  const sh = document.getElementById("sheet");
+  if (!item) { closeSheet(); return; }
+  openSessionId = id;
+  if (from) sheetBackLabel = from;
+  const s = item.session, done = !!state.done[id];
+  const warm = routineById(s.warmupRoutine), cool = routineById(s.cooldownRoutine);
+  const steps = s.blocks.map(b => `${b.repeats > 1 ? `<div class="rep">Repeat ${b.repeats} times</div>` : ""}
+      ${b.steps.map(st => `<div class="row"><span class="zbar" style="background:var(--z-${st.zone})"></span><span class="main">
+        <span class="t">${stepLength(st)} · ${ZONE_TITLE[st.zone]}</span>
+        <span class="s">${showPaceFor(st.zone) ? `<span class="mono" style="color:var(--ink)">${paceRange(st.zone)}</span> · ` : ""}${ZONE_EFFORT[st.zone]}</span>
+        ${st.note ? `<span class="tip">${esc(st.note)}</span>` : ""}</span></div>`).join("")}`).join("");
+  const scrollTop = quiet ? sh.scrollTop : 0;
+  sh.innerHTML = `
+    <div class="bar"><div class="wrap">${backBtn(sheetBackLabel)}<span class="meta">W${String(item.week).padStart(2, "0")} · ${esc(fmtDay(item.date)).toUpperCase()}</span></div></div>
+    <div class="wrap body">
+      <div class="head" style="padding-top:0"><span class="eyebrow">${esc(TYPE_TITLE[s.type])}</span><h1 style="font-size:30px">${esc(s.title)}</h1><p style="margin-top:4px">${esc(s.summary)}</p></div>
+      <div class="telemetry" style="border-top:1px solid var(--line)">
+        <div><span class="k">Time</span><span class="v">${Math.round(estSeconds(s) / 60)}<small>min</small></span></div>
+        <div><span class="k">Distance</span><span class="v">${distNum(estMeters(s))}<small>${unitLabel()}</small></span></div>
+        <div><span class="k">Status</span><span class="v" style="color:${done ? "var(--cyan)" : "var(--muted)"}">${done ? "Done" : "To do"}</span></div>
+      </div>
+      ${warm ? `<div class="group"><div class="label">01 · Warm up</div>
+        <div class="panel list"><div class="row"><span class="chip">${ICON.flame}</span><span class="main"><span class="t">${esc(warm.title)}</span><span class="s">${routineMin(warm)} min of drills</span></span><button class="btn small" data-play="${warm.id}">Start</button></div></div></div>` : ""}
+      <div class="group"><div class="label">02 · The run</div><div class="panel list steps">${steps}</div></div>
+      <div class="group"><div class="label">03 · Stretch</div>
+        ${cool ? `<div class="panel list"><div class="row"><span class="chip">${ICON.stretch}</span><span class="main"><span class="t">${esc(cool.title)}</span><span class="s">${routineMin(cool)} min</span></span><button class="btn small" data-play="${cool.id}">Start</button></div></div>` : ""}</div>
+      ${s.tips ? `<div class="panel pad" style="font-size:14px;border-left:2px solid var(--violet)"><span class="eyebrow" style="color:var(--violet);display:block;margin-bottom:4px">Coach</span>${esc(s.tips)}</div>` : ""}
+      <div class="group">
+        <div class="label">Apple Watch</div>
+        <div class="panel rim pad" style="display:grid;gap:14px">
+          <div style="display:flex;gap:12px;align-items:center"><span class="chip">${ICON.watch}</span><b style="font-family:var(--display);font-size:17px;font-weight:600">Save this run on your watch</b></div>
+          <ol class="howto">
+            <li><span>Open the <b>Workout</b> app on your watch.</span></li>
+            <li><span>Find <b>Outdoor Run</b>, tap <b>•••</b>, then <b>Create Workout</b> › <b>Custom</b>.</span></li>
+            <li><span>Add the steps below. On each Work step, add <b>Alert</b> › <b>Pace Range</b>.</span></li>
+            <li><span>On the day, tap <b>•••</b> on Outdoor Run and start it.</span></li>
+          </ol>
+        </div>
+        <div class="panel list recipe">${recipeRows(s)}</div>
+        <div class="note">The watch records pace, distance, cadence, stride length, heart rate and power. Find the run afterwards in the Fitness app. Menu names can vary a little between watch versions.</div>
+      </div>
+      <button class="btn ${done ? "ghost" : ""}" data-toggle="${id}">${done ? "Done · Tap to undo" : "Mark as done"}</button>
+    </div>`;
+  sh.hidden = false;
+  sh.scrollTop = scrollTop;
+  document.body.style.overflow = "hidden";
+  if (!quiet) sh.querySelector("[data-close]").focus();
+}
+
+function openRoutine(id, from) {
+  const r = routineById(id);
+  const sh = document.getElementById("sheet");
+  openSessionId = null;
+  sh.innerHTML = `
+    <div class="bar"><div class="wrap">${backBtn(from || "Back")}<span class="meta">${routineMin(r)} MIN</span></div></div>
+    <div class="wrap body">
+      <div class="head" style="padding-top:0"><span class="eyebrow">${r.kind === "warmup" ? "Before you run" : r.kind === "cooldown" ? "After you run" : "Rest days"}</span><h1 style="font-size:30px">${esc(r.title)}</h1><p style="margin-top:4px">${esc(r.summary)}</p></div>
+      <button class="btn" data-play="${r.id}">Start timer</button>
+      <div class="group"><div class="label">${r.exercises.length} exercises</div>
+      <div class="panel list">${r.exercises.map((e, i) => `<div class="row" style="align-items:flex-start">
+        <span class="chip">${String(i + 1).padStart(2, "0")}</span><span class="main"><span class="t">${esc(e.name)}</span><span class="s mono" style="color:var(--cyan);font-size:12px">${esc(prescription(e))}</span><span class="s">${esc(e.cue)}</span></span></div>`).join("")}</div></div>
+    </div>`;
+  sh.hidden = false; sh.scrollTop = 0;
+  document.body.style.overflow = "hidden";
+  sh.querySelector("[data-close]").focus();
+}
+
+function closeSheet() {
+  openSessionId = null;
+  const sh = document.getElementById("sheet");
+  sh.hidden = true; sh.innerHTML = "";
+  document.body.style.overflow = "";
+}
+
+// ---------- routine player ----------
+let P = null, audio = null, wakeLock = null;
+const SVG_PLAY = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg>`;
+const SVG_PAUSE = `<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4.5" width="4" height="15" rx="1"/><rect x="14" y="4.5" width="4" height="15" rx="1"/></svg>`;
+const SVG_PREV = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg>`;
+const SVG_NEXT = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg>`;
+const SVG_CHECK = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>`;
+
+function beep(freq = 880, ms = 160) {
+  try {
+    audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+    const o = audio.createOscillator(), g = audio.createGain();
+    o.frequency.value = freq; o.connect(g); g.connect(audio.destination);
+    g.gain.setValueAtTime(0.18, audio.currentTime); g.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + ms / 1000);
+    o.start(); o.stop(audio.currentTime + ms / 1000);
+  } catch (e) {}
+}
+async function startPlayer(id) {
+  const r = routineById(id);
+  P = { r, i: 0, left: exSeconds(r.exercises[0]), total: exSeconds(r.exercises[0]), paused: false, timer: null, switched: false };
+  beep(660, 120);
+  try { if (navigator.wakeLock) wakeLock = await navigator.wakeLock.request("screen"); } catch (e) {}
+  P.timer = setInterval(tick, 1000);
+  document.getElementById("player").hidden = false;
+  drawPlayer();
+}
+function goEx(i) {
+  if (!P) return;
+  P.i = Math.max(0, Math.min(i, P.r.exercises.length));
+  const e = P.r.exercises[P.i];
+  P.left = P.total = e ? exSeconds(e) : 0;
+  P.switched = false;
+  beep(e ? 880 : 1046, e ? 160 : 400);
+  drawPlayer();
+}
+function tick() {
+  if (!P || P.paused || P.i >= P.r.exercises.length) return;
+  P.left -= 1;
+  const e = P.r.exercises[P.i];
+  if (e.perSide && !P.switched && P.left <= P.total / 2) { P.switched = true; beep(520, 220); }
+  if (P.left <= 3 && P.left > 0) beep(440, 80);
+  if (P.left <= 0) goEx(P.i + 1); else drawPlayer();
+}
+function stopPlayer() {
+  if (P) clearInterval(P.timer);
+  P = null;
+  try { if (wakeLock) wakeLock.release(); } catch (e) {}
+  wakeLock = null;
+  const pl = document.getElementById("player"); pl.hidden = true; pl.innerHTML = "";
+}
+function drawPlayer() {
+  const pl = document.getElementById("player");
+  const n = P.r.exercises.length, e = P.r.exercises[P.i], next = P.r.exercises[P.i + 1];
+  const side = e && e.perSide ? (P.switched ? "Second side" : "First side") : "";
+  pl.innerHTML = `
+    <div class="ptop"><button data-stop>Close</button><span>${String(Math.min(P.i + 1, n)).padStart(2, "0")} / ${String(n).padStart(2, "0")}</span></div>
+    <div class="center">
+      ${e ? `
+        <div class="side">${side}</div>
+        <div class="ex">${esc(e.name)}</div>
+        <div class="presc">${esc(prescription(e))}</div>
+        <div class="bigring">${ringSvg(1 - P.left / P.total, 46, 4)}<div class="clock">${dur(P.left)}</div></div>
+        <div class="cue">${esc(e.cue)}</div>
+        <div class="nextup">${next ? "NEXT › " + esc(next.name).toUpperCase() : "LAST EXERCISE"}</div>`
+      : `<div class="bigring">${ringSvg(1, 46, 4)}<div class="clock" style="color:var(--cyan)">${SVG_CHECK.replace("<svg", '<svg width="72" height="72"')}</div></div>
+         <div class="ex">Complete</div><div class="cue">${esc(P.r.title)} done. Nice work.</div>`}
+    </div>
+    <div class="ctrls">
+      <button data-prev aria-label="Previous exercise" ${P.i === 0 ? "disabled" : ""}>${SVG_PREV}</button>
+      ${e ? `<button class="main" data-pause aria-label="${P.paused ? "Resume" : "Pause"}">${P.paused ? SVG_PLAY : SVG_PAUSE}</button>` : `<button class="main" data-stop aria-label="Finish">${SVG_CHECK}</button>`}
+      <button data-next aria-label="Next exercise" ${e ? "" : "disabled"}>${SVG_NEXT}</button>
+    </div>`;
+}
+
+// ---------- events ----------
+document.addEventListener("click", ev => {
+  const t = ev.target.closest("button");
+  if (!t) return;
+  if (t.dataset.tab) {
+    tab = t.dataset.tab;
+    document.querySelectorAll(".tab").forEach(b => b === t ? b.setAttribute("aria-current", "page") : b.removeAttribute("aria-current"));
+    ["today", "plan", "routines", "settings"].forEach(k => document.getElementById("view-" + k).hidden = k !== tab);
+    window.scrollTo(0, 0);
+    return;
+  }
+  if (t.dataset.open) return openSession(t.dataset.open, false, t.dataset.from);
+  if (t.dataset.routine) return openRoutine(t.dataset.routine, t.dataset.from);
+  if (t.hasAttribute("data-close")) return closeSheet();
+  if (t.dataset.toggle) { const d = Object.assign({}, state.done); if (d[t.dataset.toggle]) delete d[t.dataset.toggle]; else d[t.dataset.toggle] = isoDate(new Date()); return setState({ done: d }); }
+  if (t.dataset.play) return startPlayer(t.dataset.play);
+  if (t.hasAttribute("data-stop")) return stopPlayer();
+  if (t.hasAttribute("data-pause")) { P.paused = !P.paused; return drawPlayer(); }
+  if (t.hasAttribute("data-prev")) return goEx(P.i - 1);
+  if (t.hasAttribute("data-next")) return goEx(P.i + 1);
+  if (t.dataset.day) {
+    const d = Number(t.dataset.day);
+    return setState({ runDays: state.runDays.includes(d) ? state.runDays.filter(x => x !== d) : [...state.runDays, d].sort((a, b) => a - b) });
+  }
+  if (t.dataset.unit) return setState({ unit: t.dataset.unit });
+  if (t.id === "reset") {
+    if (t.dataset.armed) return setState({ done: {} });
+    t.dataset.armed = "1";
+    document.getElementById("resetLabel").textContent = "Tap again to clear every tick";
+  }
+});
+document.addEventListener("change", ev => {
+  const t = ev.target;
+  if (t.id === "cur" || t.id === "goal") {
+    const v = parseDur(t.value);
+    const err = document.getElementById("timeErr");
+    if (v == null || v < 600 || v > 3600) { err.hidden = false; return; }
+    err.hidden = true;
+    setState(t.id === "cur" ? { currentFiveK: v } : { goalFiveK: v });
+  }
+  if (t.id === "start" && t.value) setState({ startDate: t.value });
+});
+document.addEventListener("keydown", ev => {
+  if (ev.key !== "Escape") return;
+  if (!document.getElementById("player").hidden) stopPlayer();
+  else if (!document.getElementById("sheet").hidden) closeSheet();
+});
+document.addEventListener("visibilitychange", async () => {
+  if (P && document.visibilityState === "visible" && navigator.wakeLock) { try { wakeLock = await navigator.wakeLock.request("screen"); } catch (e) {} }
+});
+
+render();
+connectStore();
+</script>
+
+<script>
+if ('serviceWorker' in navigator) { addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); }); }
+</script>
+</body>
+</html>
