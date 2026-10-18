@@ -1,5 +1,5 @@
 /* Run 5K - offline shell. Bumping CACHE evicts the old one. */
-var CACHE = 'run5k-v2';
+var CACHE = 'run5k-v3';
 var SHELL = ['./', './index.html', './manifest.webmanifest', './icon-180.png', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', function (e) {
@@ -31,7 +31,8 @@ self.addEventListener('fetch', function (e) {
   }
 
   // the app itself: fresh when online, last copy when offline (e.g. out on a run)
-  e.respondWith(fetch(req).then(function (res) {
+  // no-cache skips the browser's 10-minute HTTP cache so a new version shows up right away
+  e.respondWith(fetch(req, { cache: 'no-cache' }).then(function (res) {
     if (res && res.ok) { var copy = res.clone(); caches.open(CACHE).then(function (c) { c.put(req, copy); }); }
     return res;
   }).catch(function () {

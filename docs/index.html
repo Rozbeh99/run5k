@@ -186,6 +186,22 @@ nav.tabs .in { max-width: 560px; margin: 0 auto; display: grid; grid-template-co
 .player .side { font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--violet); min-height: 16px; }
 .player .ex { font-family: var(--display); font-size: 30px; font-weight: 600; line-height: 1.1; }
 .player .presc { font-family: var(--mono); color: var(--cyan); font-size: 13px; letter-spacing: 0.06em; }
+.figsvg { display: block; }
+.figsvg polyline, .figsvg circle { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.figsvg .near { stroke: var(--cyan); stroke-width: 6; filter: drop-shadow(0 0 4px rgba(60, 232, 255, 0.55)); }
+.figsvg .far { stroke: var(--violet); stroke-width: 5; opacity: 0.8; }
+.figsvg .headc { fill: var(--cyan); stroke-width: 0; }
+.figsvg .ground { stroke: rgba(140, 170, 255, 0.25); stroke-width: 2; stroke-dasharray: 4 5; }
+.figsvg .prop { stroke: rgba(140, 170, 255, 0.45); stroke-width: 3; fill: rgba(140, 170, 255, 0.08); }
+.exfig { display: grid; place-items: center; margin-top: 10px; padding: 8px 0; border: 1px solid var(--line); border-radius: 14px; background: radial-gradient(260px 160px at 50% 60%, rgba(60, 120, 255, 0.14), transparent 70%), rgba(10, 16, 32, 0.6); }
+.exrow .more { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; color: var(--cyan); text-transform: uppercase; margin-top: 4px; }
+.player .pfig { width: min(40vw, 21vh, 170px); }
+.player .pfig .figsvg { width: 100%; height: auto; }
+.player.hasfig .bigring { width: min(46vw, 25vh, 200px); }
+.player.hasfig .center { gap: 8px; }
+.player.hasfig .ex { font-size: 26px; }
+@media (max-height: 700px) { .player.hasfig .cue { font-size: 14px; } .player.hasfig .pfig { width: min(40vw, 18vh, 170px); } }
+.player.hasfig .bigring .clock { font-size: clamp(36px, 10vw, 52px); }
 .bigring { position: relative; width: min(64vw, 260px); aspect-ratio: 1; max-width: 100%; }
 .bigring svg { width: 100%; height: 100%; transform: rotate(-90deg); filter: drop-shadow(0 0 14px rgba(60, 232, 255, 0.35)); }
 .bigring .clock { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--display); font-size: clamp(50px, 15vw, 70px); font-weight: 600; font-variant-numeric: tabular-nums; }
@@ -516,7 +532,8 @@ function renderSettings() {
       <div class="label">All pace zones</div>
       <div class="panel list">${["recovery", "easy", "steady", "tempo", "interval", "strides"].map(z => `<div class="row"><span class="zbar" style="background:var(--z-${z})"></span><span class="main"><span class="t">${ZONE_TITLE[z]}</span></span><span class="val">${paceRange(z)}</span></div>`).join("")}</div>
     </div>
-    <div class="panel list"><button class="row" id="reset"><span class="main"><span class="t danger" id="resetLabel">Reset all ticks</span></span></button></div>`;
+    <div class="panel list"><button class="row" id="reset"><span class="main"><span class="t danger" id="resetLabel">Reset all ticks</span></span></button></div>
+    <div class="note mono" style="text-align:center;margin-top:18px;color:var(--faint)">RUN 5K · VERSION 3</div>`;
   if (focusedId && document.getElementById(focusedId)) document.getElementById(focusedId).focus();
 }
 
@@ -602,8 +619,8 @@ function openRoutine(id, from) {
       <div class="head" style="padding-top:0"><span class="eyebrow">${r.kind === "warmup" ? "Before you run" : r.kind === "cooldown" ? "After you run" : "Rest days"}</span><h1 style="font-size:30px">${esc(r.title)}</h1><p style="margin-top:4px">${esc(r.summary)}</p></div>
       <button class="btn" data-play="${r.id}">Start timer</button>
       <div class="group"><div class="label">${r.exercises.length} exercises</div>
-      <div class="panel list">${r.exercises.map((e, i) => `<div class="row" style="align-items:flex-start">
-        <span class="chip">${String(i + 1).padStart(2, "0")}</span><span class="main"><span class="t">${esc(e.name)}</span><span class="s mono" style="color:var(--cyan);font-size:12px">${esc(prescription(e))}</span><span class="s">${esc(e.cue)}</span></span></div>`).join("")}</div></div>
+      <div class="panel list">${r.exercises.map((e, i) => `<button class="row exrow" style="align-items:flex-start" data-exfig="${i}" aria-expanded="false">
+        <span class="chip">${String(i + 1).padStart(2, "0")}</span><span class="main"><span class="t">${esc(e.name)}</span><span class="s mono" style="color:var(--cyan);font-size:12px">${esc(prescription(e))}</span><span class="s">${esc(e.cue)}</span>${EX_FIG[e.name] ? `<span class="more">Show how ›</span><span class="exfig" hidden>${figSvg(e.name, 180)}</span>` : ""}</span></button>`).join("")}</div></div>
     </div>`;
   sh.hidden = false; sh.scrollTop = 0;
   document.body.style.overflow = "hidden";
@@ -615,6 +632,75 @@ function closeSheet() {
   const sh = document.getElementById("sheet");
   sh.hidden = true; sh.innerHTML = "";
   document.body.style.overflow = "";
+}
+
+// ---------- exercise figures ----------
+// Each pose is drawn by forward kinematics: hip position, torso lean and absolute limb angles
+// (degrees from straight down, positive = towards the figure's front / screen right).
+const FIG_L = { torso: 50, neck: 13, head: 8, thigh: 38, shin: 38, foot: 11, upper: 27, fore: 25 };
+const FIG_GROUND = 182;
+function figPoints(p) {
+  const rad = d => d * Math.PI / 180;
+  const seg = (o, a, len) => [o[0] + Math.sin(rad(a)) * len, o[1] + Math.cos(rad(a)) * len];
+  const t = p.t || 0, w = p.w || 0;
+  let hip = [p.x == null ? 100 : p.x, 0];
+  const tv = [Math.sin(rad(t)), -Math.cos(rad(t))];
+  const neck = [hip[0] + tv[0] * FIG_L.torso, hip[1] + tv[1] * FIG_L.torso];
+  const hd = p.hd == null ? t : p.hd;
+  const head = [neck[0] + Math.sin(rad(hd)) * FIG_L.neck, neck[1] - Math.cos(rad(hd)) * FIG_L.neck];
+  const leg = (l, dx) => { const h = [hip[0] + dx, hip[1]]; const k = seg(h, l[0], FIG_L.thigh); const a = seg(k, l[1], FIG_L.shin); return [h, k, a, seg(a, l[2] == null ? 90 : l[2], FIG_L.foot)]; };
+  const arm = (r, dx) => { const s = [neck[0] + dx, neck[1]]; const e = seg(s, r[0], FIG_L.upper); return [s, e, seg(e, r[1], FIG_L.fore)]; };
+  const pts = { head, torso: [hip, neck], L1: leg(p.L1, w), L2: leg(p.L2, -w), A1: arm(p.A1, w * 1.6), A2: arm(p.A2, -w * 1.6) };
+  // drop the figure so its lowest point rests on the ground, then apply any lift
+  const all = [head, ...pts.torso, ...pts.L1, ...pts.L2, ...pts.A1, ...pts.A2];
+  const low = Math.max(...all.map(q => q[1] + (q === head ? FIG_L.head : 0)));
+  const dy = (p.y != null ? p.y : FIG_GROUND) - low - (p.lift || 0);
+  all.forEach(q => { q[1] += dy; });
+  return pts;
+}
+const P_STAND = { t: 0, L1: [0, 0], L2: [0, 0], A1: [8, 12], A2: [-6, -2] };
+const fig = (o) => Object.assign({}, P_STAND, o);
+const EX_FIG = {
+  "Brisk walk or easy jog": [fig({ t: 8, L1: [30, 8, 100], L2: [-28, -70, 30], A1: [-35, 40], A2: [35, 115], lift: 3 }), fig({ t: 8, L2: [30, 8, 100], L1: [-28, -70, 30], A2: [-35, 40], A1: [35, 115], lift: 3 })],
+  "Leg swings (front to back)": [fig({ L1: [50, 35, 120], A1: [20, 40], A2: [-25, -10], props: [["wall", 52]] }), fig({ L1: [-35, -40, 60], A1: [-10, 10], A2: [-25, -10], props: [["wall", 52]] })],
+  "Leg swings (side to side)": [fig({ w: 6, L1: [35, 30, 115], L2: [0, 0, 100], A1: [55, 150], A2: [-55, -150], view: "front" }), fig({ w: 6, L1: [-30, -25, 70], L2: [0, 0, 100], A1: [55, 150], A2: [-55, -150], view: "front" })],
+  "Walking lunge with twist": [fig({ L1: [22, 12, 100], L2: [-12, -18, 110], A1: [10, 40], A2: [-10, 10] }), fig({ t: -3, L1: [82, 2, 90], L2: [-18, -96, -160], A1: [70, 110], A2: [55, 120] })],
+  "Hip circles": [fig({ w: 7, x: 94, t: 8, L1: [8, 8, 100], L2: [-4, -4, 80], A1: [38, -40], A2: [-38, 40], view: "front" }), fig({ w: 7, x: 106, t: -8, L1: [4, 4, 100], L2: [-8, -8, 80], A1: [38, -40], A2: [-38, 40], view: "front" })],
+  "High knees": [fig({ t: 4, L1: [88, 5, 105], L2: [0, -4, 120], A1: [-40, 30], A2: [40, 135], lift: 4 }), fig({ t: 4, L2: [88, 5, 105], L1: [0, -4, 120], A2: [-40, 30], A1: [40, 135], lift: 4 })],
+  "Butt kicks": [fig({ t: 6, L1: [-8, -165, -110], L2: [2, -2, 120], A1: [40, 135], A2: [-40, 30], lift: 4 }), fig({ t: 6, L2: [-8, -165, -110], L1: [2, -2, 120], A2: [40, 135], A1: [-40, 30], lift: 4 })],
+  "A-skips": [fig({ t: 3, L1: [80, 0, 100], L2: [-4, -6, 130], A1: [-35, 25], A2: [45, 140], lift: 6 }), fig({ t: 3, L2: [80, 0, 100], L1: [-4, -6, 130], A2: [-35, 25], A1: [45, 140], lift: 6 })],
+  "Pogo hops": [fig({ L1: [3, -3, 140], L2: [-3, -6, 140], A1: [15, 70], A2: [-5, 60] }), fig({ L1: [3, -3, 150], L2: [-3, -6, 150], A1: [15, 70], A2: [-5, 60], lift: 14 })],
+  "Calf stretch (straight knee)": [fig({ x: 90, t: 28, hd: 20, L1: [32, -8, 100], L2: [-30, -30, 90], A1: [95, 100], A2: [88, 95], props: [["wall", 158]] }), fig({ x: 94, t: 33, hd: 24, L1: [38, -10, 100], L2: [-33, -33, 90], A1: [97, 102], A2: [90, 97], props: [["wall", 158]] })],
+  "Calf stretch (bent knee)": [fig({ x: 92, t: 22, hd: 15, L1: [30, -8, 100], L2: [-18, -38, 90], A1: [92, 98], A2: [86, 94], props: [["wall", 158]] }), fig({ x: 92, t: 22, hd: 15, L1: [34, -6, 100], L2: [-6, -45, 90], A1: [92, 98], A2: [86, 94], props: [["wall", 158]] })],
+  "Standing quad stretch": [fig({ L1: [2, -165, -80], L2: [0, 0, 90], A1: [-20, -60], A2: [80, 90] }), fig({ L1: [-10, -168, -80], L2: [0, 0, 90], A1: [-28, -65], A2: [80, 90] })],
+  "Hamstring stretch": [fig({ x: 80, t: 30, hd: 25, L1: [70, 70, 170], L2: [0, 0, 90], A1: [55, 60], A2: [45, 55], props: [["step", 140, 132, 46]] }), fig({ x: 80, t: 50, hd: 45, L1: [70, 70, 170], L2: [0, 0, 90], A1: [62, 66], A2: [52, 60], props: [["step", 140, 132, 46]] })],
+  "Kneeling hip flexor stretch": [fig({ x: 92, t: -2, L1: [80, 0, 90], L2: [-8, -95, -160], A1: [40, 70], A2: [30, 70] }), fig({ x: 100, t: -6, L1: [62, 14, 90], L2: [-28, -98, -160], A1: [35, 75], A2: [25, 75] })],
+  "Figure-4 glute stretch": [fig({ x: 112, t: -90, hd: -95, L2: [170, 90, 170], L1: [120, -125, -60], A1: [118, 108], A2: [114, 104] }), fig({ x: 112, t: -90, hd: -95, L2: [185, 100, 180], L1: [134, -112, -50], A1: [126, 116], A2: [122, 112] })],
+  "Child's pose": [fig({ x: 72, t: 118, hd: 135, L1: [32, -90, -150], L2: [32, -90, -150], A1: [78, 86], A2: [76, 84] }), fig({ x: 72, t: 112, hd: 130, L1: [26, -90, -150], L2: [26, -90, -150], A1: [82, 88], A2: [80, 86] })],
+  "Glute bridge": [fig({ x: 100, t: -90, hd: -90, L1: [145, -5, 90], L2: [145, -5, 90], A1: [90, 90], A2: [90, 90] }), fig({ x: 100, t: -72, hd: -80, L1: [112, 0, 90], L2: [112, 0, 90], A1: [70, 70], A2: [70, 70] })],
+  "Single-leg calf raise": [fig({ L1: [0, 0, 75], L2: [-10, -95, -150], A1: [60, 80], A2: [10, 15], props: [["step", 70, 166, 46]], y: 166 }), fig({ L1: [0, 0, 145], L2: [-10, -95, -150], A1: [60, 80], A2: [10, 15], props: [["step", 70, 166, 46]], y: 166, lift: 9 })],
+  "Split squat": [fig({ L1: [28, 5, 90], L2: [-22, -38, 150], A1: [10, 14], A2: [-6, 4] }), fig({ L1: [80, 0, 90], L2: [-5, -92, -170], A1: [10, 14], A2: [-6, 4] })],
+  "Single-leg Romanian deadlift": [fig({ L2: [4, -2, 90], L1: [-8, -8, 60], A1: [4, 4], A2: [-4, -4] }), fig({ t: 82, hd: 78, L2: [12, -6, 90], L1: [-80, -84, 0], A1: [0, 0], A2: [-3, -3] })],
+  "Clamshell": [fig({ x: 100, t: -90, hd: -110, L1: [130, 30, 100], L2: [120, 30, 100], A1: [175, 110], A2: [100, 95], view: "front" }), fig({ x: 100, t: -90, hd: -110, L1: [168, 55, 100], L2: [120, 30, 100], A1: [175, 110], A2: [100, 95], view: "front" })],
+  "Plank": [fig({ x: 90, t: 92, hd: 98, L1: [-88, -88, 10], L2: [-88, -88, 10], A1: [0, 90], A2: [0, 90] }), fig({ x: 90, t: 89, hd: 95, L1: [-90, -90, 10], L2: [-90, -90, 10], A1: [0, 90], A2: [0, 90] })],
+  "Side plank": [fig({ x: 112, t: -66, hd: -80, L1: [64, 64, 150], L2: [66, 66, 150], A1: [-20, -20], A2: [-160, -170], view: "front" }), fig({ x: 112, t: -74, hd: -85, L1: [74, 74, 150], L2: [76, 76, 150], A1: [-20, -20], A2: [-175, -185], view: "front" })],
+};
+function figSvg(name, size) {
+  const poses = EX_FIG[name];
+  if (!poses) return "";
+  const [A, B] = poses.map(figPoints);
+  const f = n => n.toFixed(1);
+  const pl = q => q.map(p => f(p[0]) + "," + f(p[1])).join(" ");
+  const anim = (attr, a, b) => `<animate attributeName="${attr}" values="${a};${b};${a}" dur="2.4s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines=".45 0 .55 1;.45 0 .55 1"/>`;
+  const line = (k, cls) => `<polyline class="${cls}" points="${pl(A[k])}">${anim("points", pl(A[k]), pl(B[k]))}</polyline>`;
+  const props = (poses[0].props || []).map(([type, x, y, w]) => type === "wall"
+    ? `<line class="prop" x1="${x}" y1="40" x2="${x}" y2="${FIG_GROUND}"/>`
+    : `<rect class="prop" x="${x}" y="${y}" width="${w}" height="${FIG_GROUND - y}" rx="3"/>`).join("");
+  return `<svg class="figsvg" viewBox="0 0 200 200" width="${size}" height="${size}" role="img" aria-label="${esc(name)} demonstration">
+    <line class="ground" x1="18" y1="${FIG_GROUND}" x2="182" y2="${FIG_GROUND}"/>${props}
+    ${line("L2", "far")}${line("A2", "far")}${line("torso", "near")}${line("L1", "near")}${line("A1", "near")}
+    <circle class="near headc" cx="${f(A.head[0])}" cy="${f(A.head[1])}" r="${FIG_L.head}">${anim("cx", f(A.head[0]), f(B.head[0]))}${anim("cy", f(A.head[1]), f(B.head[1]))}</circle>
+  </svg>`;
 }
 
 // ---------- routine player ----------
@@ -671,6 +757,9 @@ function drawPlayer() {
   const pl = document.getElementById("player");
   const n = P.r.exercises.length, e = P.r.exercises[P.i], next = P.r.exercises[P.i + 1];
   const side = e && e.perSide ? (P.switched ? "Second side" : "First side") : "";
+  pl.classList.toggle("hasfig", !!(e && EX_FIG[e.name]));
+  // keep the running figure across the once-a-second redraw so its animation doesn't restart
+  const oldFig = pl.querySelector(".pfig");
   pl.innerHTML = `
     <div class="ptop"><button data-stop>Close</button><span>${String(Math.min(P.i + 1, n)).padStart(2, "0")} / ${String(n).padStart(2, "0")}</span></div>
     <div class="center">
@@ -678,6 +767,7 @@ function drawPlayer() {
         <div class="side">${side}</div>
         <div class="ex">${esc(e.name)}</div>
         <div class="presc">${esc(prescription(e))}</div>
+        ${EX_FIG[e.name] ? `<div class="pfig" data-name="${esc(e.name)}">${figSvg(e.name, 170)}</div>` : ""}
         <div class="bigring">${ringSvg(1 - P.left / P.total, 46, 4)}<div class="clock">${dur(P.left)}</div></div>
         <div class="cue">${esc(e.cue)}</div>
         <div class="nextup">${next ? "NEXT › " + esc(next.name).toUpperCase() : "LAST EXERCISE"}</div>`
@@ -689,6 +779,8 @@ function drawPlayer() {
       ${e ? `<button class="main" data-pause aria-label="${P.paused ? "Resume" : "Pause"}">${P.paused ? SVG_PLAY : SVG_PAUSE}</button>` : `<button class="main" data-stop aria-label="Finish">${SVG_CHECK}</button>`}
       <button data-next aria-label="Next exercise" ${e ? "" : "disabled"}>${SVG_NEXT}</button>
     </div>`;
+  const newFig = pl.querySelector(".pfig");
+  if (oldFig && newFig && oldFig.dataset.name === newFig.dataset.name) newFig.replaceWith(oldFig);
 }
 
 // ---------- events ----------
@@ -706,6 +798,13 @@ document.addEventListener("click", ev => {
   if (t.dataset.routine) return openRoutine(t.dataset.routine, t.dataset.from);
   if (t.hasAttribute("data-close")) return closeSheet();
   if (t.dataset.toggle) { const d = Object.assign({}, state.done); if (d[t.dataset.toggle]) delete d[t.dataset.toggle]; else d[t.dataset.toggle] = isoDate(new Date()); return setState({ done: d }); }
+  if (t.dataset.exfig) {
+    const box = t.querySelector(".exfig"); if (!box) return;
+    const open = box.hidden; box.hidden = !open;
+    t.setAttribute("aria-expanded", String(open));
+    t.querySelector(".more").textContent = open ? "Hide ‹" : "Show how ›";
+    return;
+  }
   if (t.dataset.play) return startPlayer(t.dataset.play);
   if (t.hasAttribute("data-stop")) return stopPlayer();
   if (t.hasAttribute("data-pause")) { P.paused = !P.paused; return drawPlayer(); }
@@ -748,7 +847,13 @@ connectStore();
 </script>
 
 <script>
-if ('serviceWorker' in navigator) { addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); }); }
+if ('serviceWorker' in navigator) {
+  // when a newer version takes over, reload once so the new page shows straight away
+  var hadController = !!navigator.serviceWorker.controller, reloaded = false;
+  navigator.serviceWorker.addEventListener('controllerchange', function () { if (hadController && !reloaded) { reloaded = true; location.reload(); } });
+  addEventListener('load', function () { navigator.serviceWorker.register('sw.js').then(function (r) { r.update(); }).catch(function () {}); });
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) navigator.serviceWorker.getRegistration().then(function (r) { if (r) r.update(); }); });
+}
 </script>
 </body>
 </html>
