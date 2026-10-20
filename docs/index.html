@@ -262,7 +262,7 @@ const ROUTINES = ({"routines":[{"id":"dynamic-warmup","kind":"warmup","title":"D
 const LOCALE = "en-GB";
 
 // ---------- state ----------
-const DEFAULT_STATE = { currentFiveK: 1800, goalFiveK: 1650, runDays: [2, 4, 6], startDate: isoDate(new Date()), unit: "km", done: {} };
+const DEFAULT_STATE = { currentFiveK: 1800, goalFiveK: 1650, runDays: [2, 4, 6], startDate: isoDate(new Date()), unit: "km", done: {}, watch: {} };
 let state = Object.assign({}, DEFAULT_STATE);
 let stateDoc = null, saveTimer = null, saving = false, pendingSave = false, syncText = "Saved on this iPhone";
 
@@ -486,11 +486,11 @@ function renderPlan() {
     const items = all.filter(x => x.week === w.number);
     const rows = items.map(x => `<button class="row" data-open="${x.id}" data-from="Plan">
       <span class="chip ${state.done[x.id] ? "done" : ""}">${state.done[x.id] ? ICON.check : TYPE_MARK[x.session.type]}</span>
-      <span class="main"><span class="t">${esc(x.session.title)}</span><span class="s">${esc(fmtDay(x.date))}</span></span>${CHEV}</button>`).join("");
+      <span class="main"><span class="t">${esc(x.session.title)}</span><span class="s">${esc(fmtDay(x.date))} · ${state.watch[x.session.id] ? `<span style="color:var(--cyan)">⌚ ${esc(watchName(x))} sparat</span>` : `⌚ ${esc(watchName(x))}`}</span></span>${CHEV}</button>`).join("");
     return `<div class="group"><div class="label">W${String(w.number).padStart(2, "0")} · ${esc(w.focus)}</div><div class="panel list">${rows || '<div class="row"><span class="s">Pick run days in Setup.</span></div>'}</div></div>`;
   }).join("");
   document.getElementById("view-plan").innerHTML = `
-    <div class="head"><span class="eyebrow">${doneCount} of ${all.length} runs done</span><h1>${esc(PLAN.name)}</h1><p>${esc(PLAN.description)}</p></div>
+    <div class="head"><span class="eyebrow">${doneCount} of ${all.length} runs done · ${all.filter(x => state.watch[x.session.id]).length} sparade på klockan</span><h1>${esc(PLAN.name)}</h1><p>${esc(PLAN.description)}</p></div>
     <div class="meter" role="progressbar" aria-valuemin="0" aria-valuemax="${all.length}" aria-valuenow="${doneCount}"><i style="width:${doneCount / Math.max(all.length, 1) * 100}%"></i></div>
     ${weeks}`;
 }
@@ -533,30 +533,44 @@ function renderSettings() {
       <div class="panel list">${["recovery", "easy", "steady", "tempo", "interval", "strides"].map(z => `<div class="row"><span class="zbar" style="background:var(--z-${z})"></span><span class="main"><span class="t">${ZONE_TITLE[z]}</span></span><span class="val">${paceRange(z)}</span></div>`).join("")}</div>
     </div>
     <div class="panel list"><button class="row" id="reset"><span class="main"><span class="t danger" id="resetLabel">Reset all ticks</span></span></button></div>
-    <div class="note mono" style="text-align:center;margin-top:18px;color:var(--faint)">RUN 5K · VERSION 3</div>`;
+    <div class="note mono" style="text-align:center;margin-top:18px;color:var(--faint)">RUN 5K · VERSION 4</div>`;
   if (focusedId && document.getElementById(focusedId)) document.getElementById(focusedId).focus();
 }
 
 // ---------- session sheet ----------
 let openSessionId = null;
 
+// ---------- Apple Watch recipe (labels match the Swedish Workout app) ----------
+const WATCH_TYPE = { easy: "Lugn", intervals: "Intervall", tempo: "Tempo", long: "Långpass", race: "Lopp" };
+const watchName = item => `V${item.week} ${WATCH_TYPE[item.session.type] || "Pass"}`;
+const wPace = sec => dur(sec * unitFactor()).replace(":", "'") + "''";
+function wGoal(st) {
+  if (st.meters != null) return st.meters >= 1000 ? `Distans ${(st.meters / 1000).toFixed(1).replace(".", ",")} km` : `Distans ${st.meters} m`;
+  const m = Math.floor(st.seconds / 60), sec = st.seconds % 60;
+  return `Tid ${dur(st.seconds)} (${m ? m + " min" : ""}${m && sec ? " " : ""}${sec ? sec + " s" : ""})`;
+}
+function wAlert(st) {
+  if (st.kind === "recover") return st.zone === "walk" ? "Ingen varning. Gå lugnt." : "Ingen varning. Lugn jogg eller gång.";
+  if (st.zone === "strides") return "Ingen varning. Snabbt men avslappnat, inte max.";
+  const r = zoneRange(st.zone);
+  return `Varning: Mål › Tempo › Intervall ${wPace(r.fast)} till ${wPace(r.slow)} /${unitLabel()} › Takt just nu`;
+}
 function recipeRows(s) {
   const rows = [];
+  let n = 0;
   s.blocks.forEach(b => {
     const st0 = b.steps[0];
-    if (b.repeats === 1 && b.steps.length === 1 && st0.kind === "warmup") { rows.push(["Warmup", `${stepLength(st0)} · time`]); return; }
-    if (b.repeats === 1 && b.steps.length === 1 && st0.kind === "cooldown") { rows.push(["Cooldown", `${stepLength(st0)} · time`]); return; }
-    rows.push([`Repeat ${b.repeats}×`, "", "head"]);
-    b.steps.forEach(st => {
-      const goal = `${stepLength(st)} · ${st.meters != null ? "distance" : "time"}`;
-      const alert = showPaceFor(st.zone) && st.zone !== "strides" ? `Pace alert ${paceRange(st.zone)}` : (st.zone === "walk" ? "Walk" : "");
-      rows.push([st.kind === "work" ? "Work" : "Recovery", goal, "sub", alert]);
-    });
+    if (b.repeats === 1 && b.steps.length === 1 && st0.kind === "warmup") { rows.push(["Uppvärmning", wGoal(st0), "", "Ingen varning. Lugn jogg."]); return; }
+    if (b.repeats === 1 && b.steps.length === 1 && st0.kind === "cooldown") { rows.push(["Nedvarvning", wGoal(st0), "", "Ingen varning. Jogga eller gå ner."]); return; }
+    n++;
+    rows.push([`Arbetsblock ${n} · Upprepning ${b.repeats}`, "", "head"]);
+    b.steps.forEach(st => rows.push([st.kind === "work" ? "Träning" : "Vila", wGoal(st), "sub", wAlert(st)]));
   });
   return rows.map(([k, v, kind, alert]) => kind === "head"
     ? `<div class="rep">${esc(k)}</div>`
-    : `<div class="row ${kind === "sub" ? "sub" : ""}"><span class="main"><span class="t">${esc(k)}</span>${alert ? `<span class="s">${esc(alert)}</span>` : ""}</span><span class="val">${esc(v)}</span></div>`).join("");
+    : `<div class="row ${kind === "sub" ? "sub" : ""}" style="align-items:flex-start"><span class="main"><span class="t">${esc(k)}</span><span class="s mono" style="color:var(--cyan);font-size:12px">${esc(v)}</span>${alert ? `<span class="s">${esc(alert)}</span>` : ""}</span></div>`).join("");
 }
+const workBlocks = s => s.blocks.filter(b => !(b.repeats === 1 && b.steps.length === 1 && (b.steps[0].kind === "warmup" || b.steps[0].kind === "cooldown"))).length;
 
 function openSession(id, quiet, from) {
   const item = schedule().find(x => x.id === id);
@@ -588,18 +602,20 @@ function openSession(id, quiet, from) {
         ${cool ? `<div class="panel list"><div class="row"><span class="chip">${ICON.stretch}</span><span class="main"><span class="t">${esc(cool.title)}</span><span class="s">${routineMin(cool)} min</span></span><button class="btn small" data-play="${cool.id}">Start</button></div></div>` : ""}</div>
       ${s.tips ? `<div class="panel pad" style="font-size:14px;border-left:2px solid var(--violet)"><span class="eyebrow" style="color:var(--violet);display:block;margin-bottom:4px">Coach</span>${esc(s.tips)}</div>` : ""}
       <div class="group">
-        <div class="label">Apple Watch</div>
+        <div class="label">Apple Watch · förbered passet</div>
         <div class="panel rim pad" style="display:grid;gap:14px">
-          <div style="display:flex;gap:12px;align-items:center"><span class="chip">${ICON.watch}</span><b style="font-family:var(--display);font-size:17px;font-weight:600">Save this run on your watch</b></div>
+          <div style="display:flex;gap:12px;align-items:center"><span class="chip">${ICON.watch}</span><b style="font-family:var(--display);font-size:17px;font-weight:600">Spara som <span style="color:var(--cyan)">${esc(watchName(item))}</span></b></div>
           <ol class="howto">
-            <li><span>Open the <b>Workout</b> app on your watch.</span></li>
-            <li><span>Find <b>Outdoor Run</b>, tap <b>•••</b>, then <b>Create Workout</b> › <b>Custom</b>.</span></li>
-            <li><span>Add the steps below. On each Work step, add <b>Alert</b> › <b>Pace Range</b>.</span></li>
-            <li><span>On the day, tap <b>•••</b> on Outdoor Run and start it.</span></li>
+            <li><span>Öppna <b>Träning</b> › <b>Utomhuslöpning</b> och tryck på <b>knappen uppe till höger</b>.</span></li>
+            <li><span>Tryck <b>Anpassad</b>, scrolla längst ner och tryck <b>Skapa träningspass</b>.</span></li>
+            <li><span>Lägg in stegen nedan i ordning. Under arbetsblocket väljer du <b>Träning</b>, <b>Vila</b> och <b>Upprepning</b>.${workBlocks(s) > 1 ? " Har passet flera arbetsblock lägger du till nästa block efter det första." : ""}</span></li>
+            <li><span>Tryck <b>Skapa träningspass</b> och döp det till <b>${esc(watchName(item))}</b>.</span></li>
+            <li><span>På passdagen: Utomhuslöpning › knappen uppe till höger › Anpassad › <b>${esc(watchName(item))}</b> › grön play.</span></li>
           </ol>
         </div>
         <div class="panel list recipe">${recipeRows(s)}</div>
-        <div class="note">The watch records pace, distance, cadence, stride length, heart rate and power. Find the run afterwards in the Fitness app. Menu names can vary a little between watch versions.</div>
+        <button class="btn ${state.watch[s.id] ? "ghost" : "small"}" data-watch="${s.id}" style="margin-top:12px;width:100%">${state.watch[s.id] ? "✓ Sparat på klockan" : "Bocka av: sparat på klockan"}</button>
+        <div class="note">Klockan sparar tempo, distans, kadens, steglängd, puls och kraft. Passet syns sedan i appen Fitness.${state.unit === "mi" ? "" : " Tempot gäller per km."}</div>
       </div>
       <button class="btn ${done ? "ghost" : ""}" data-toggle="${id}">${done ? "Done · Tap to undo" : "Mark as done"}</button>
     </div>`;
@@ -805,6 +821,7 @@ document.addEventListener("click", ev => {
     t.querySelector(".more").textContent = open ? "Hide ‹" : "Show how ›";
     return;
   }
+  if (t.dataset.watch) { const w = Object.assign({}, state.watch); if (w[t.dataset.watch]) delete w[t.dataset.watch]; else w[t.dataset.watch] = 1; setState({ watch: w }); return; }
   if (t.dataset.play) return startPlayer(t.dataset.play);
   if (t.hasAttribute("data-stop")) return stopPlayer();
   if (t.hasAttribute("data-pause")) { P.paused = !P.paused; return drawPlayer(); }
